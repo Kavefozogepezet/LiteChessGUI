@@ -1,0 +1,18 @@
+{
+    "white": {
+        "king": "pieces/w_king_png_128px",
+        "queen": "pieces/w_queen_png_128px",
+        "bishop": "pieces/w_bishop_png_128px",
+        "knight": "pieces/w_knight_png_128px",
+        "rook": "pieces/w_rook_png_128px",
+        "pawn": "pieces/w_pawn_png_128px"
+    },
+    "black": {
+        "king": "pieces/b_king_png_128px",
+        "queen": "pieces/b_queen_png_128px",
+        "bishop": "pieces/b_bishop_png_128px",
+        "knight": "pieces/b_knight_png_128px",
+        "rook": "pieces/b_rook_png_128px",
+        "pawn": "pieces/b_pawn_png_128px"
+    }
+}

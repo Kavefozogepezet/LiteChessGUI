@@ -1,0 +1,8 @@
+{
+  "white": {
+    "king": "default.pieces.black_king"
+  },
+  "black": {
+    "king": "default.pieces.black_king"
+  }
+}
