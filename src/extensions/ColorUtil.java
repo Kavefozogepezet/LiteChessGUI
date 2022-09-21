@@ -1,5 +1,5 @@
-/**
- * ColorUtilities.java
+package extensions; /**
+ * extensions.ColorUtilities.java
  */
 //package edu.belmont.mth.visigraph.utilities;
 
@@ -8,7 +8,7 @@ import java.awt.Color;
 /**
  * @author Cameron Behar
  */
-public class ColorUtilities {
+public class ColorUtil {
     public static Color blend(Color c0, Color c1) {
         double totalAlpha = c0.getAlpha() + c1.getAlpha();
         double weight0 = c0.getAlpha() / totalAlpha;

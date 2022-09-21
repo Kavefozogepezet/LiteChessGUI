@@ -1,3 +1,5 @@
+package board;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -9,14 +11,14 @@ import java.io.*;
 
 public class BoardStyle {
     private static final File texDir = new File(System.getProperty("user.dir"), "textures");
-    private static final Image[][] imgs = new Image[2][PieceType.Count.ordinal()];
+    private static final Image[][] imgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
 
     public static Image getPieceTexture(Piece piece) {
         return getPieceTexture(piece.side, piece.type);
     }
 
     public static Image getPieceTexture(Side side, PieceType pieceType) {
-        return imgs[side.ordinal() - 1][pieceType.ordinal()];
+        return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
     public static void loadStyle(String styleName) {
@@ -30,11 +32,11 @@ public class BoardStyle {
             JSONObject obj = (JSONObject) parser.parse(in);
 
             String[] sides = { "white", "black" };
-            String[] pieces = { "", "king", "queen", "bishop", "knight", "rook", "pawn" };
+            String[] pieces = { "king", "queen", "bishop", "knight", "rook", "pawn" };
             for(int sideIdx = 0; sideIdx < 2; sideIdx++) {
                 JSONObject sideObj = (JSONObject) obj.get(sides[sideIdx]);
 
-                for(int pieceIdx = 1; pieceIdx < PieceType.Count.ordinal(); pieceIdx++) {
+                for(int pieceIdx = 0; pieceIdx < PieceType.Count.ordinal(); pieceIdx++) {
                     Object piecePathObj = sideObj.get(pieces[pieceIdx]);
 
                     if(piecePathObj == null)

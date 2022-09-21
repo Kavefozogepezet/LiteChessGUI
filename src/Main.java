@@ -1,3 +1,9 @@
+import board.Board;
+import board.BoardStyle;
+import board.Piece;
+import board.Square;
+import player.HumanPlayer;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -11,6 +17,9 @@ public class Main {
         Board board = new Board();
         setupBoard(board);
         window.add(board);
+
+        HumanPlayer player1 = new HumanPlayer(board);
+        player1.myTurn();
 
         //window.pack();
         window.setDefaultCloseOperation(window.EXIT_ON_CLOSE);
