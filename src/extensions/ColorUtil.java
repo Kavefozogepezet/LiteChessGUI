@@ -9,6 +9,8 @@ import java.awt.Color;
  * @author Cameron Behar
  */
 public class ColorUtil {
+    public static final Color transparent = new Color(0, 0, 0, 0);
+
     public static Color blend(Color c0, Color c1) {
         double totalAlpha = c0.getAlpha() + c1.getAlpha();
         double weight0 = c0.getAlpha() / totalAlpha;

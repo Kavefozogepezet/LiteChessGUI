@@ -1,22 +1,96 @@
-import board.Board;
-import board.BoardStyle;
-import board.Piece;
-import board.Square;
+import board.*;
+import board.movegen.MoveGen;
+import board.setup.Fen;
+import board.setup.StartPos;
+import board.types.Piece;
+import board.types.Side;
+import board.types.Square;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
 import player.HumanPlayer;
+import javax.swing.UIManager.LookAndFeelInfo;
 
 import javax.swing.*;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+import javax.swing.plaf.synth.SynthLookAndFeel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Main {
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (UnsupportedLookAndFeelException e) {
+            throw new RuntimeException(e);
+        }
         BoardStyle.loadStyle("default");
 
         var window = new JFrame("Lite Chess GUI");
-        window.setSize(new Dimension(600, 400));
+        var layout = new GridBagLayout();
+        window.setLayout(layout);
+        window.setSize(new Dimension(1280, 720));
+
+        var constraints = new GridBagConstraints();
+
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weightx = 1.0d;
+        constraints.weighty = 1.0f;
+        constraints.gridwidth = 2;
 
         Board board = new Board();
-        setupBoard(board);
+        layout.setConstraints(board, constraints);
+        board.newGame(new Fen("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1"));
+/*
+        JButton backB = new JButton("Back");
+        constraints.gridy = 1;
+        constraints.weighty = 0.0f;
+        constraints.gridwidth = 1;
+        layout.setConstraints(backB, constraints);
+        backB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                board.unplay();
+            }
+        });
+
+        JTextArea perftD = new JTextArea("depth");
+        constraints.gridy = 2;
+        constraints.gridx = 1;
+        layout.setConstraints(perftD, constraints);
+
+        JButton perftB = new JButton("Perft");
+        constraints.gridx = 0;
+        layout.setConstraints(perftB, constraints);
+        perftB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MoveGen.Perft(Integer.parseInt(perftD.getText()), board);
+            }
+        });
+
+        JTextArea fenText = new JTextArea("fen");
+        constraints.gridy = 3;
+        constraints.gridx = 1;
+        layout.setConstraints(fenText, constraints);
+
+        JButton fenB = new JButton("set fen");
+        constraints.gridx = 0;
+        layout.setConstraints(fenB, constraints);
+
+        fenB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                board.newGame(new Fen(fenText.getText()));
+            }
+        });
+*/
         window.add(board);
+        /*window.add(perftB);
+        window.add(backB);
+        window.add(perftD);
+        window.add(fenText);
+        window.add(fenB);*/
 
         HumanPlayer player1 = new HumanPlayer(board);
         player1.myTurn();
@@ -24,33 +98,5 @@ public class Main {
         //window.pack();
         window.setDefaultCloseOperation(window.EXIT_ON_CLOSE);
         window.setVisible(true);
-    }
-
-    public static void setupBoard(Board board) {
-        board.setPiece(new Square(4, 0), Piece.WKing);
-        board.setPiece(new Square(4, 7), Piece.BKing);
-
-        board.setPiece(new Square(3, 0), Piece.WQueen);
-        board.setPiece(new Square(3, 7), Piece.BQueen);
-
-        board.setPiece(new Square(0, 0), Piece.WRook);
-        board.setPiece(new Square(0, 7), Piece.BRook);
-        board.setPiece(new Square(7, 0), Piece.WRook);
-        board.setPiece(new Square(7, 7), Piece.BRook);
-
-        board.setPiece(new Square(1, 0), Piece.WKnight);
-        board.setPiece(new Square(1, 7), Piece.BKnight);
-        board.setPiece(new Square(6, 0), Piece.WKnight);
-        board.setPiece(new Square(6, 7), Piece.BKnight);
-
-        board.setPiece(new Square(2, 0), Piece.WBishop);
-        board.setPiece(new Square(2, 7), Piece.BBishop);
-        board.setPiece(new Square(5, 0), Piece.WBishop);
-        board.setPiece(new Square(5, 7), Piece.BBishop);
-
-        for(int i = 0; i < Board.BOARD_SIZE; i++) {
-            board.setPiece(new Square(i, 1), Piece.WPawn);
-            board.setPiece(new Square(i, 6), Piece.BPawn);
-        }
     }
 }

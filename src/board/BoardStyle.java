@@ -1,5 +1,8 @@
 package board;
 
+import board.types.Piece;
+import board.types.PieceType;
+import board.types.Side;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -12,6 +15,19 @@ import java.io.*;
 public class BoardStyle {
     private static final File texDir = new File(System.getProperty("user.dir"), "textures");
     private static final Image[][] imgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
+
+    // colors
+    public static Color baseWhite = new Color(222, 189, 144);
+    public static Color baseBlack = new Color(189, 122, 67);
+
+    public static Color sqihCheck = new Color(255, 0, 0, 128);
+    public static Color sqihMoved = new Color(255, 179, 0, 128);
+    public static Color sqihArrived = new Color(255, 179, 0, 128);
+
+    public static Color sqmhSelected = new Color(0, 72, 17, 128);
+    public static Color sqmhMove = new Color(0, 255, 50, 128);
+
+    public static boolean showCoordinates = true;
 
     public static Image getPieceTexture(Piece piece) {
         return getPieceTexture(piece.side, piece.type);
