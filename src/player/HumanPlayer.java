@@ -1,23 +1,24 @@
 package player;
 
-import board.*;
-import board.event.SquareListener;
-import board.types.Move;
-import board.types.Square;
+import game.Game;
+import game.board.*;
+import game.board.SquareListener;
+import game.movegen.Move;
+import game.board.Square;
 
 import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 
 public class HumanPlayer implements Player {
-    private Board board;
+    private Game game;
     private boolean myTurn = false;
     private LinkedList<Move> selMoves = null;
     private Square sel = null;
 
-    public HumanPlayer(Board board) {
-        this.board = board;
+    public HumanPlayer(Game game) {
+        this.game = game;
 
-        board.addSquareListener(new SquareListener() {
+        game.getBoard().addSquareListener(new SquareListener() {
             @Override
             public void squareClicked(Square sq, MouseEvent e) {
                 if(!(e.getButton() == MouseEvent.BUTTON1 && myTurn))
@@ -38,13 +39,13 @@ public class HumanPlayer implements Player {
                 selMoves = null;
 
                 if(moveToPlay != null) {
-                    board.play(moveToPlay);
+                    game.play(moveToPlay);
                     return;
                 }
 
-                if(board.getPiece(sq) != null) {
+                if(game.getBoard().getPiece(sq) != null) {
                     sel = sq;
-                    selMoves = board.getMoves(sq);
+                    selMoves = game.getMoves(sq);
                 }
                 setHighlight();
             }
@@ -64,19 +65,19 @@ public class HumanPlayer implements Player {
     private void clearHighlight() {
         if(selMoves != null)
             for (var move : selMoves)
-                board.setSqHighlight(move.to, Board.SqMoveHL.None);
+                game.getBoard().setSqHighlight(move.to, Board.SqMoveHL.None);
 
         if(sel != null)
-            board.setSqHighlight(sel, Board.SqMoveHL.None);
+            game.getBoard().setSqHighlight(sel, Board.SqMoveHL.None);
     }
 
     private void setHighlight() {
         if(selMoves != null)
             for (var move : selMoves)
-                board.setSqHighlight(move.to, Board.SqMoveHL.Move);
+                game.getBoard().setSqHighlight(move.to, Board.SqMoveHL.Move);
 
         if(sel != null)
-            board.setSqHighlight(sel, Board.SqMoveHL.Selected);
+            game.getBoard().setSqHighlight(sel, Board.SqMoveHL.Selected);
     }
 
     @Override
