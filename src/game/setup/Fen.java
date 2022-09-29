@@ -1,5 +1,6 @@
 package game.setup;
 
+import GUI.BoardView;
 import game.Game;
 import game.board.*;
 
@@ -13,7 +14,7 @@ public class Fen implements ChessNotation {
     public void set(Game game) {
         String[] sections = fen.split(" ");
 
-        int file = 0, rank = Board.BOARD_SIZE - 1;
+        int file = 0, rank = BoardView.BOARD_SIZE - 1;
 
         for(char c : sections[0].toCharArray()) {
             if(c == '/') {

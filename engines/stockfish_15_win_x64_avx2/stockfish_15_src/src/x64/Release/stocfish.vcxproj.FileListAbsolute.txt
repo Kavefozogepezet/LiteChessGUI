@@ -1,0 +1,1 @@
+E:\Program Files\stockfish_15_win_x64_avx2\stockfish_15_src\src\x64\Release\stocfish.exe

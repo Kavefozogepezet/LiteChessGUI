@@ -32,24 +32,19 @@ public class Clock {
         }
     }
 
-    private final JLabel[] timePanels = new JLabel[2];
     private final int[] remaining = new int[2]; // remaining time in 100ms
     private final int[] used = new int[2]; // time used since last move
     private Side clockState = Side.White;
     private final Format format;
-    private Timer timer;
+    private Timer timer = new Timer(100, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            reduceTime();
+        }
+    });
 
-    public Clock(JLabel timeWhite, JLabel timeBlack, Side side2move, Format format) {
-        timePanels[0] = timeWhite;
-        timePanels[1] = timeBlack;
+    public Clock(Format format, Side side2move) {
         this.format = format;
-
-        timer = new Timer(100, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                reduceTime();
-            }
-        });
         reset(side2move);
     }
 
@@ -66,11 +61,6 @@ public class Clock {
         clockState = side2move;
         remaining[0] = format.time[0];
         remaining[1] = format.time[1];
-
-        displayTime();
-        clockState = clockState.other();
-        displayTime();
-        clockState = clockState.other();
     }
 
     public boolean isRunning() {
@@ -81,8 +71,15 @@ public class Clock {
         return remaining[clockState.ordinal()] == 0;
     }
 
+    public Timer getTimer() {
+        return timer;
+    }
+
     public void movePlayed() {
         int sIdx = clockState.ordinal();
+
+        if(!isRunning())
+            return;
 
         switch (format.type) {
             case FISCHER -> remaining[sIdx] += format.inc[sIdx];
@@ -90,8 +87,6 @@ public class Clock {
         }
         used[0] = 0;
         used[1] = 0;
-
-        displayTime();
         clockState = clockState.other();
     }
 
@@ -101,12 +96,10 @@ public class Clock {
 
         if(format.type != Format.IncType.DELAY || used[sIdx] > format.inc[sIdx])
             remaining[sIdx]--;
-
-        displayTime();
     }
 
-    private void displayTime() {
-        int sIdx = clockState.ordinal();
+    public String getTimeStr(Side side) {
+        int sIdx = side.ordinal();
         int[] ms_s_m_h = { 0, 0, 0, 0 };
         int time = remaining[sIdx];
 
@@ -137,6 +130,6 @@ public class Clock {
             timeStr.append(ms_s_m_h[0]);
         }
 
-        timePanels[sIdx].setText(timeStr.toString());
+        return timeStr.toString();
     }
 }

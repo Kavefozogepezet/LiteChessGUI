@@ -1,196 +1,116 @@
 package game;
 
-import game.board.*;
-import game.movegen.MoveGen;
+import game.board.Board;
+import game.board.Side;
+import game.board.Square;
+import game.board.State;
+import game.event.GameListener;
 import game.movegen.Move;
+import game.movegen.MoveGen;
 import game.setup.GameSetup;
-import game.setup.StartPos;
 import org.jetbrains.annotations.NotNull;
-import player.Player;
 
-import javax.swing.*;
-import javax.swing.border.*;
-import java.awt.*;
 import java.util.LinkedList;
 
-public class Game extends JLabel {
-    Board board = new Board();
-    Clock clock = null;
+public class Game {
+    public enum Result {
+        WHITE_WINS, BLACK_WINS, DRAW
+    }
 
-    JLabel[] players = new JLabel[2];
-    JLabel[] times = new JLabel[2];
+    public enum Termination {
+        NORMAL, FORFEIT, TIME_FORFEIT
+    }
 
+    private Clock clock = null;
+    private Board board = new Board();
     private State state = new State();
-    private final LinkedList<Move> moveList = new LinkedList<>();
-    private final MoveGen movesNow = new MoveGen(this);
+    private final LinkedList<Move> moveList = new LinkedList<Move>();
+    private MoveGen movesNow = new MoveGen(this);
 
-    private JPanel createPlayerPanel(String name, Side side) {
-        int idx = side.ordinal();
+    private Result result = null;
+    private Termination termination = null;
 
-        JPanel panel = new JPanel(new GridLayout(1, 2));
-        players[idx] = new JLabel(name);
+    private final LinkedList<GameListener> gameListeners = new LinkedList<>();
 
-        String fontName = players[idx].getFont().getName();
-        Font font = new Font(fontName, Font.BOLD, 24);
-
-        players[idx].setHorizontalAlignment(SwingConstants.CENTER);
-        players[idx].setFont(font);
-
-        times[idx] = new JLabel("0.0");
-        times[idx].setHorizontalAlignment(SwingConstants.CENTER);
-        times[idx].setFont(font);
-
-        panel.add(players[idx]);
-        panel.add(times[idx]);
-
-        panel.setBackground(panel.getBackground().darker());
-        panel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        return panel;
-    }
-
-    public Game() {
-        JPanel
-                header = createPlayerPanel("Black player", Side.Black),
-                footer = createPlayerPanel("White player", Side.White);
-
-        setLayout(new BorderLayout());
-        add(header, BorderLayout.PAGE_START);
-        add(footer, BorderLayout.PAGE_END);
-        add(board, BorderLayout.CENTER);
-
-        movesNow.generate();
-    }
-
-    public Game(Clock.Format timeControl) {
-        this();
-        clock = new Clock(times[0], times[1], state.getTurn(), timeControl);
-    }
-
-    public void newGame(GameSetup setup) {
-        board.clear();
-        moveList.clear();
+    public Game(GameSetup setup) {
         setup.set(this);
-        board.repaint();
-
-        clock.reset(state.getTurn());
-
         movesNow.generate();
     }
-
-    public void newGame() {
-        newGame(new StartPos());
+    public Game(GameSetup setup, Clock.Format format) {
+        this(setup);
+        clock = new Clock(format, state.getTurn());
     }
 
+    public void addGameListener(@NotNull GameListener gameListener) {
+        gameListeners.add(gameListener);
+    }
+
+    public Board getBoard() {
+        return board;
+    }
     public State getState() {
         return state;
     }
+    public LinkedList<Move> getMoveList() {
+        return moveList;
+    }
+    public LinkedList<Move> getMoves(Square sq) {
+        return movesNow.getMoves(sq);
+    }
+    public Clock getClock() {
+        return clock;
+    }
+
+    public Result getResult() {
+        return result;
+    }
+    public Termination getTermination() {
+        return termination;
+    }
+
     public void setState(State state) {
         this.state = state;
     }
 
-    public Board getBoard() { return board; }
-
-    public LinkedList<Move> getMoves(Square sq) {
-        return movesNow.getMoves(sq);
+    public boolean hasEnded() {
+        return result != null;
+    }
+    public boolean usesTimeControl() {
+        return clock != null;
     }
 
-    public void play(@NotNull Move move) {
-        clearHighlights();
+    public void play(Move move) {
+        if(hasEnded())
+            return;
 
-        board.removePiece(move.from);
-
-        if(move.isPromotion())
-            board.setPiece(move.to, move.getPromotionPiece());
-        else
-            board.setPiece(move.to, move.moving);
-
-        if(move.isCastle()) {
-            Square rookSq;
-            if(move.moving.side == Side.White)
-                rookSq = move.is(Move.CASTLE_K) ? Square.h1 : Square.a1;
-            else
-                rookSq = move.is(Move.CASTLE_K) ? Square.h8 : Square.a8;
-
-            Piece rook = board.getPiece(rookSq);
-            board.setPiece(Square.between(move.from, move.to), rook);
-            board.removePiece(rookSq);
-        }
-
-        if(move.is(Move.EN_PASSANT))
-            board.removePiece(Square.cross(move.to, move.from));
-
+        board.play(move);
         state.movePlayed(move);
-        moveList.add(move);
 
-        if(clock != null) {
-            if (!clock.isRunning())
-                clock.start();
+        if(clock != null)
             clock.movePlayed();
-        }
 
-        board.repaint();
+        moveList.add(move);
         movesNow.generate();
-
-        updateHighlights();
+        if(movesNow.isEmpty()) {
+            termination = Termination.NORMAL;
+            if(movesNow.isCheck())
+                result = state.getTurn() == Side.Black
+                        ? Result.WHITE_WINS
+                        : Result.BLACK_WINS;
+        }
     }
 
     public void unplay() {
-        clearHighlights();
-        Move move = moveList.pollLast();
-
-        if(move == null)
+        if(moveList.isEmpty() || hasEnded())
             return;
 
-        board.removePiece(move.to);
-        board.setPiece(move.from, move.moving);
-
-        if(move.isCastle()) {
-            Square rookSq;
-            if(move.moving.side == Side.White)
-                rookSq = move.is(Move.CASTLE_K) ? Square.h1 : Square.a1;
-            else
-                rookSq = move.is(Move.CASTLE_K) ? Square.h8 : Square.a8;
-
-            Piece rook = board.getPiece(Square.between(move.from, move.to));
-            board.setPiece(rookSq, rook);
-            board.removePiece(Square.between(move.from, move.to));
-        }
-
-        if(move.is(Move.EN_PASSANT))
-            board.setPiece(Square.cross(move.to, move.from), move.captured);
-        else if(move.isCapture())
-            board.setPiece(move.to, move.captured);
-
+        Move move = moveList.pollLast();
+        board.unplay(move);
         state.moveUnplayed();
-        board.repaint();
+
+        if(clock != null)
+            clock.movePlayed();
 
         movesNow.generate();
-
-        updateHighlights();
-    }
-
-    private void clearHighlights() {
-        if(moveList.isEmpty())
-            return;
-
-        Move move = moveList.getLast();
-
-        board.setSqHighlight(move.from, Board.SqInfoHL.None);
-        board.setSqHighlight(move.to, Board.SqInfoHL.None);
-
-        board.setSqHighlight(board.getKing(state.getTurn()), Board.SqInfoHL.None);
-    }
-
-    private void updateHighlights() {
-        if(moveList.isEmpty())
-            return;
-
-        Move move = moveList.getLast();
-
-        board.setSqHighlight(move.from, Board.SqInfoHL.Moved);
-        board.setSqHighlight(move.to, Board.SqInfoHL.Arrived);
-
-        if(movesNow.isCheck())
-            board.setSqHighlight(board.getKing(state.getTurn()), Board.SqInfoHL.Checked);
     }
 }

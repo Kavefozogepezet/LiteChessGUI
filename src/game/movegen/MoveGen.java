@@ -1,5 +1,6 @@
 package game.movegen;
 
+import GUI.BoardView;
 import game.Game;
 import game.board.*;
 
@@ -103,8 +104,8 @@ public class MoveGen {
         Square king = null;
 
         // Attack game.game.getBoard()
-        for(int rank = 0; rank < Board.BOARD_SIZE; rank++) {
-            for(int file = 0; file < Board.BOARD_SIZE; file++) {
+        for(int rank = 0; rank < BoardView.BOARD_SIZE; rank++) {
+            for(int file = 0; file < BoardView.BOARD_SIZE; file++) {
                 Square origin = new Square(file, rank);
                 Piece piece = game.getBoard().getPiece(origin);
 
@@ -386,8 +387,8 @@ public class MoveGen {
     }
 
     private void fillMoves() {
-        for(int rank = 0; rank < Board.BOARD_SIZE; rank++) {
-            for(int file = 0; file < Board.BOARD_SIZE; file++) {
+        for(int rank = 0; rank < BoardView.BOARD_SIZE; rank++) {
+            for(int file = 0; file < BoardView.BOARD_SIZE; file++) {
                 Square sq = new Square(file, rank);
                 Piece moving = game.getBoard().getPiece(sq);
 
@@ -408,6 +409,10 @@ public class MoveGen {
         if(!moves.containsKey(origin))
             return null;
         return moves.get(origin);
+    }
+
+    public boolean isEmpty() {
+        return moves.isEmpty();
     }
 
     private static long PerftHelper(int depth, Game game) {

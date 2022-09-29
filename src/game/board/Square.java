@@ -1,5 +1,7 @@
 package game.board;
 
+import GUI.BoardView;
+
 import java.util.Objects;
 
 public class Square {
@@ -40,8 +42,8 @@ public class Square {
 
     public boolean valid() {
         return
-                0 <= file && file < Board.BOARD_SIZE &&
-                0 <= rank && rank < Board.BOARD_SIZE;
+                0 <= file && file < BoardView.BOARD_SIZE &&
+                0 <= rank && rank < BoardView.BOARD_SIZE;
     }
 
     public Square shift(int file, int rank) {

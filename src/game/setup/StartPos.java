@@ -1,5 +1,6 @@
 package game.setup;
 
+import GUI.BoardView;
 import game.Game;
 import game.board.*;
 
@@ -29,7 +30,7 @@ public class StartPos implements GameSetup {
         board.setPiece(5, 0, Piece.WBishop);
         board.setPiece(5, 7, Piece.BBishop);
 
-        for(int i = 0; i < Board.BOARD_SIZE; i++) {
+        for(int i = 0; i < BoardView.BOARD_SIZE; i++) {
             board.setPiece(i, 1, Piece.WPawn);
             board.setPiece(i, 6, Piece.BPawn);
         }
