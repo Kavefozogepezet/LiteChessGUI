@@ -8,6 +8,5 @@ import game.movegen.Move;
 public interface GameListener {
     void movePlayed(Move move);
     void gameEnded(Game.Result result, Game.Termination termination);
-    void kingChecked(Square kingSq);
     void timeTick(Clock clock);
 }

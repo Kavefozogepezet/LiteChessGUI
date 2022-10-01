@@ -35,7 +35,7 @@ public class Clock {
     private final int[] remaining = new int[2]; // remaining time in 100ms
     private final int[] used = new int[2]; // time used since last move
     private Side clockState = Side.White;
-    private final Format format;
+    public final Format format;
     private Timer timer = new Timer(100, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -73,6 +73,13 @@ public class Clock {
 
     public Timer getTimer() {
         return timer;
+    }
+
+    public int getRemaining(Side side) {
+        return remaining[side.ordinal()];
+    }
+    public int getRemainingMs(Side side) {
+        return getRemaining(side) * 100;
     }
 
     public void movePlayed() {

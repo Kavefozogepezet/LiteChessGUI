@@ -414,40 +414,4 @@ public class MoveGen {
     public boolean isEmpty() {
         return moves.isEmpty();
     }
-
-    private static long PerftHelper(int depth, Game game) {
-        if (depth == 0)
-            return 1L;
-
-        var gen = new MoveGen(game);
-        long pos = 0;
-
-        for(var mlist : gen.moves.values()) {
-            for(var move : mlist) {
-                game.play(move);
-                pos += PerftHelper(depth - 1, game);
-                game.unplay();
-            }
-        }
-        return pos;
-    }
-
-    public static void Perft(int depth, Game game) {
-        if (depth == 0)
-            System.out.println("min depth == 1");
-
-        var gen = new MoveGen(game);
-        long pos = 0;
-
-        for(var mlist : gen.moves.values()) {
-            for(var move : mlist) {
-                game.play(move);
-                long subpos = PerftHelper(depth - 1, game);
-                pos += subpos;
-                System.out.println(move + ": " + subpos);
-                game.unplay();
-            }
-        }
-        System.out.println("Perft result: " + pos);
-    }
 }

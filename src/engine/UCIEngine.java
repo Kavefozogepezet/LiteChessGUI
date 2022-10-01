@@ -1,25 +1,101 @@
 package engine;
 
+import game.Clock;
+import game.Game;
+import game.board.Side;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.Scanner;
 
-public class UCIEngine implements Runnable {
-    EngineConfig config;
-    Process engineProcess = null;
-    boolean isok = false;
-    boolean running = false;
+public class UCIEngine implements Engine {
+    private EngineConfig config;
+    private Process engineProcess = null;
+    private boolean isok = false;
+    private boolean running = false;
 
-    Scanner in;
-    PrintStream out;
+    private Game game;
+    private String pvMove = null;
+    private LinkedList<EngineListener> listeners = new LinkedList<>();
 
+    private Scanner in;
+    private PrintStream out;
 
     public UCIEngine(EngineConfig config) {
         this.config = config;
     }
 
-    public void go() {
-        out.println("go");
+    @Override
+    public boolean verificationFailure() {
+        if(running)
+            return false;
+
+        try {
+            synchronized (this) {
+                wait(10000);
+                return !running;
+            }
+        } catch (InterruptedException ignored) {
+            return true;
+        }
+    }
+
+    public void isReady() {
+        out.println("isready");
+        try {
+            synchronized (this) {
+                this.wait();
+            }
+        } catch (InterruptedException ignored) {}
+    }
+
+    @Override
+    public void startSearch() {
+        if(game.hasEnded())
+            return;
+
+        setPosition();
+
+        StringBuilder command = new StringBuilder("go");
+        if(game.usesTimeControl()) {
+            Clock clock = game.getClock();
+            command
+                    .append(" wtime ").append(clock.getRemainingMs(Side.White))
+                    .append(" winc ").append(clock.format.inc[Side.White.ordinal()])
+                    .append(" btime ").append(clock.getRemainingMs(Side.Black))
+                    .append(" binc ").append(clock.format.inc[Side.Black.ordinal()]);
+        } else {
+            command.append(" movetime 5000");
+        }
+        out.println(command);
+    }
+
+    @Override
+    public void stopSearch() {
+        out.println("stop");
+    }
+
+    @Override
+    public void addListener(EngineListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(EngineListener listener) {
+        listeners.remove(listener);
+    }
+
+    @Override
+    public void playingThis(Game game) {
+        out.println("ucinewgame");
+        isReady();
+        this.game = game;
+    }
+
+    @Override
+    public Game getCurrentGame() {
+        return game;
     }
 
     @Override
@@ -40,13 +116,64 @@ public class UCIEngine implements Runnable {
             in = new Scanner(input);
             out = new PrintStream(output, true, StandardCharsets.UTF_8);
 
-            out.println("d");
+            out.println("uci");
+
+            String inputLine;
+            do {
+                inputLine = in.nextLine();
+            } while(inputLine.equals("uciok"));
+
+            out.println("ucinewgame");
+            out.println("isready");
+            do {
+                inputLine = in.nextLine();
+            } while(inputLine.equals("readyok"));
+
+            running = true;
+            synchronized (this) {
+                this.notifyAll();
+            }
 
             while(running) {
-                System.out.println(in.nextLine());
+                String line = in.nextLine();
+                String[] strs = line.split(" ");
+
+                switch (strs[0]) {
+                    case "info" -> System.out.println("[ENGINE INFO]: " + line);
+                    case "bestmove" -> {
+                        pvMove = strs[1];
+                        System.out.println("GOT BEST: " + pvMove);
+                        for(var listener : listeners) {
+                            listener.bestmove(pvMove);
+                        }
+                    }
+                    case "readyok" -> {
+                        synchronized (this) {
+                            notifyAll();
+                        }
+                    }
+                    default -> System.out.println("[ENGINE DEBUG]: " + line);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void setPosition() {
+        StringBuilder command = new StringBuilder("position ");
+
+        if(game.isDefaultStart())
+            command.append("startpos");
+        else
+            command.append(game.getStartFen());
+
+        if(!game.getMoveList().isEmpty()) {
+            command.append(" moves");
+            for(var move : game.getMoveList()) {
+                command.append(" ").append(move);
+            }
+        }
+        out.println(command);
     }
 }

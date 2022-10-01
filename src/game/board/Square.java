@@ -63,16 +63,19 @@ public class Square {
 
     @Override
     public String toString() {
-        return "" + file2char(file) + rank2char(rank);
+        if(!valid())
+            return "-";
+        else
+            return "" + file2char(file) + rank2char(rank);
     }
 
-    public static Square fromString(String str) {
+    public static Square parse(String str) {
         if(str.length() != 2)
             return Square.invalid;
 
         int
-                file = str.charAt(0) - 'a',
-                rank = str.charAt(1) - '1';
+                file = char2file(str.charAt(0)),
+                rank = char2rank(str.charAt(1));
 
         return new Square(file, rank);
     }
@@ -84,4 +87,13 @@ public class Square {
     public static char rank2char(int rank) {
         return (char)('1' + rank);
     }
+
+    public static int char2file(char ch) {
+        return ch - 'a';
+    }
+
+    public static int char2rank(char ch) {
+        return ch - '1';
+    }
+
 }

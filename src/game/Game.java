@@ -7,14 +7,25 @@ import game.board.State;
 import game.event.GameListener;
 import game.movegen.Move;
 import game.movegen.MoveGen;
+import game.setup.Fen;
 import game.setup.GameSetup;
-import org.jetbrains.annotations.NotNull;
+import game.setup.StartPos;
+import player.Player;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.LinkedList;
 
 public class Game {
     public enum Result {
-        WHITE_WINS, BLACK_WINS, DRAW
+        WHITE_WINS, BLACK_WINS, DRAW;
+
+        public static Result won(Side side) {
+            return side == Side.White ? WHITE_WINS : BLACK_WINS;
+        }
+        public static Result lost(Side side) {
+            return side == Side.Black ? WHITE_WINS : BLACK_WINS;
+        }
     }
 
     public enum Termination {
@@ -22,34 +33,90 @@ public class Game {
     }
 
     private Clock clock = null;
-    private Board board = new Board();
+    private final Board board = new Board();
     private State state = new State();
+    private final Player[] players = new Player[2];
     private final LinkedList<Move> moveList = new LinkedList<Move>();
-    private MoveGen movesNow = new MoveGen(this);
+    private final MoveGen movesNow = new MoveGen(this);
 
     private Result result = null;
     private Termination termination = null;
+    private boolean started = false;
+
+    private String startFen;
+    private boolean defaultStart = false;
 
     private final LinkedList<GameListener> gameListeners = new LinkedList<>();
 
-    public Game(GameSetup setup) {
+    public Game(Player white, Player black, GameSetup setup) {
         setup.set(this);
+        players[Side.White.ordinal()] = white;
+        players[Side.Black.ordinal()] = black;
+        white.bind(this);
+        black.bind(this);
         movesNow.generate();
     }
-    public Game(GameSetup setup, Clock.Format format) {
-        this(setup);
+
+    public Game(Player white, Player black, GameSetup setup, Clock.Format format) {
+        this(white, black, setup);
         clock = new Clock(format, state.getTurn());
+        clock.getTimer().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                invokeTimeTick();
+                if(clock.isTimeout()) {
+                    players[state.getTurn().ordinal()].cancelTurn();
+                    endGame(Result.lost(state.getTurn()), Termination.TIME_FORFEIT);
+                }
+            }
+        });
     }
 
-    public void addGameListener(@NotNull GameListener gameListener) {
-        gameListeners.add(gameListener);
+    public Game(Player white, Player black, Clock.Format format) {
+        this(white, black, new StartPos(), format);
+    }
+
+    public Game(Player white, Player black) {
+        this(white, black, new StartPos());
+    }
+
+    public void addListener(GameListener listener) {
+        gameListeners.add(listener);
+    }
+
+    public void removeListener(GameListener listener) {
+        gameListeners.remove(listener);
+    }
+
+    public void startGame() {
+        if(started)
+            return;
+
+        players[state.getTurn().ordinal()].myTurn();
+        started = true;
+    }
+
+    public State getState() {
+        return state;
+    }
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public String getStartFen() {
+        return startFen;
+    }
+    public void setStartFen(String fen) {
+        startFen = fen;
+        if(fen.equals(Fen.STARTPOS_FEN))
+            defaultStart = true;
     }
 
     public Board getBoard() {
         return board;
     }
-    public State getState() {
-        return state;
+    public Player getPlayer(Side side) {
+        return players[side.ordinal()];
     }
     public LinkedList<Move> getMoveList() {
         return moveList;
@@ -68,15 +135,16 @@ public class Game {
         return termination;
     }
 
-    public void setState(State state) {
-        this.state = state;
-    }
-
     public boolean hasEnded() {
         return result != null;
     }
+
     public boolean usesTimeControl() {
         return clock != null;
+    }
+
+    public boolean isDefaultStart() {
+        return defaultStart;
     }
 
     public void play(Move move) {
@@ -91,26 +159,41 @@ public class Game {
 
         moveList.add(move);
         movesNow.generate();
+
+        invokeMovePlayed();
+
         if(movesNow.isEmpty()) {
             termination = Termination.NORMAL;
             if(movesNow.isCheck())
                 result = state.getTurn() == Side.Black
                         ? Result.WHITE_WINS
                         : Result.BLACK_WINS;
+            invokeGameEnd();
+        } else {
+            players[state.getTurn().ordinal()].myTurn();
         }
     }
 
-    public void unplay() {
-        if(moveList.isEmpty() || hasEnded())
-            return;
+    public void resign() {
+        endGame(Result.lost(state.getTurn()), Termination.FORFEIT);
+    }
 
-        Move move = moveList.pollLast();
-        board.unplay(move);
-        state.moveUnplayed();
+    private void endGame(Result result, Termination termination) {
+        this.result = result;
+        this.termination = termination;
+        invokeGameEnd();
+    }
 
-        if(clock != null)
-            clock.movePlayed();
-
-        movesNow.generate();
+    private void invokeTimeTick() {
+        for(var listener : gameListeners)
+            listener.timeTick(clock);
+    }
+    private void invokeGameEnd() {
+        for(var listener : gameListeners)
+            listener.gameEnded(result, termination);
+    }
+    private void invokeMovePlayed() {
+        for(var listener : gameListeners)
+            listener.movePlayed(moveList.getLast());
     }
 }

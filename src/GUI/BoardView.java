@@ -3,7 +3,6 @@ package GUI;
 import extensions.ColorUtil;
 import game.board.*;
 import game.event.SquareListener;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -50,19 +49,23 @@ public class BoardView extends AbstractBoard implements GUICreator {
     }
 
     @Override
-    public void setPiece(@NotNull Square square, Piece piece) {
+    public void setPiece(Square square, Piece piece) {
         super.setPiece(square, piece);
-        squares[square.rank][square.file].piece = piece;
+        var sqb = squares[square.rank][square.file];
+        sqb.piece = piece;
+        sqb.repaint();
     }
 
     @Override
-    public void removePiece(@NotNull Square square) {
+    public void removePiece(Square square) {
         super.removePiece(square);
-        squares[square.rank][square.file].piece = null;
+        var sqb = squares[square.rank][square.file];
+        sqb.piece = null;
+        sqb.repaint();
     }
 
     @Override
-    public Piece getPiece(@NotNull Square square) {
+    public Piece getPiece(Square square) {
         return squares[square.rank][square.file].piece;
     }
 
@@ -106,7 +109,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
         JPanel container = new JPanel(layout) {
             @Override
-            public @NotNull Dimension getPreferredSize() {
+            public Dimension getPreferredSize() {
                 Dimension parent = getParent().getSize();
                 int size = Math.min(parent.width, parent.height);
                 size = Math.max(128, size);
@@ -226,12 +229,12 @@ public class BoardView extends AbstractBoard implements GUICreator {
             addMouseListener(new SquareMouseListener());
         }
 
-        public void setInfoHL(@NotNull SqInfoHL state) {
+        public void setInfoHL(SqInfoHL state) {
             infoState = state;
             setColor();
         }
 
-        public void setMoveHL(@NotNull SqMoveHL state) {
+        public void setMoveHL(SqMoveHL state) {
             moveState = state;
             setColor();
         }

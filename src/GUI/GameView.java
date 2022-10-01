@@ -4,9 +4,10 @@ import extensions.ColorUtil;
 import game.Clock;
 import game.Game;
 import game.board.*;
+import game.event.GameListener;
 import game.movegen.Move;
 import game.setup.StartPos;
-import org.jetbrains.annotations.NotNull;
+import player.HumanPlayer;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -17,24 +18,26 @@ import java.awt.*;
 import java.util.ListIterator;
 
 public class GameView implements GUICreator {
-    private static final String infinity = "\u221e";
-
     Game game;
+    MoveMaker gameListener = new MoveMaker();
     BoardView boardView = new BoardView();
     ListIterator<Move> moveItr;
     Move lastMove = null;
-    PlayerBar[] playersBars = new PlayerBar[2];
+    PlayerBar[] playersBars = { new PlayerBar(Side.White), new PlayerBar(Side.Black) };
     JPanel GUIRoot = new JPanel();
+    boolean followGame = true;
 
     public GameView(Game game) {
-        playersBars[Side.White.ordinal()] = new PlayerBar(Side.White);
-        playersBars[Side.Black.ordinal()] = new PlayerBar(Side.Black);
         setGame(game);
         createGUI();
     }
 
     public GameView() {
-        this(new Game(new StartPos()));
+        setGame(new Game(
+                new HumanPlayer(this),
+                new HumanPlayer(this)
+        ));
+        createGUI();
     }
 
     public BoardView getBoardView() {
@@ -46,30 +49,19 @@ public class GameView implements GUICreator {
     }
 
     public void setGame(Game game) {
+        if(this.game != null)
+            this.game.removeListener(gameListener);
         clearHighlights();
+
         this.game = game;
+        moveItr = game.getMoveList().listIterator(game.getMoveList().size());
+        game.addListener(gameListener);
         boardView.copyBoard(game.getBoard());
-        //playersBars[Side.White.ordinal()].setPlayer();
-        //playersBars[Side.Black.ordinal()].setPlayer();
+        //playersBars[Side.White.ordinal()].setPlayer(game.getPlayer(Side.White));
+        //playersBars[Side.Black.ordinal()].setPlayer(game.getPlayer(Side.Black));
         playersBars[Side.White.ordinal()].setTime(game.getClock());
         playersBars[Side.Black.ordinal()].setTime(game.getClock());
         GUIRoot.repaint();
-    }
-
-    public void play(@NotNull Move move) {
-        clearHighlights();
-
-        boolean atLastMove = !moveItr.hasNext();
-
-        game.play(move);
-        int idx = moveItr.nextIndex();
-        moveItr = game.getMoveList().listIterator(idx);
-
-        if(atLastMove) {// we are following the match on the board view
-            lastMove = moveItr.next();
-            boardView.play(lastMove);
-        }
-        updateHighlights(move);
     }
 
     public void nextMove() {
@@ -80,6 +72,9 @@ public class GameView implements GUICreator {
         Move move = moveItr.next();
         boardView.play(move);
         updateHighlights(move);
+
+        if(!moveItr.hasNext())
+            followGame = true;
     }
 
     public void prevMove() {
@@ -89,6 +84,7 @@ public class GameView implements GUICreator {
         Move move = moveItr.previous();
         boardView.play(move);
         updateHighlights(move);
+        followGame = false;
     }
 
     private void clearHighlights() {
@@ -132,6 +128,8 @@ public class GameView implements GUICreator {
     }
 
     private class PlayerBar implements GUICreator {
+        private static final String INFINITY_SYMBOL = "\u221e";
+
         private final JPanel frame = new JPanel();
         private Side side;
         private final JLabel
@@ -141,7 +139,7 @@ public class GameView implements GUICreator {
         public PlayerBar(Side side) {
             this.side = side;
             name.setText(side == Side.White ? "White" : "Black");
-            time.setText(GameView.infinity);
+            time.setText(INFINITY_SYMBOL);
             createGUI();
         }
 
@@ -151,7 +149,7 @@ public class GameView implements GUICreator {
 
         public void setTime(Clock clock) {
             String timeStr = clock == null
-                    ? GameView.infinity
+                    ? INFINITY_SYMBOL
                     : clock.getTimeStr(side);
             time.setText(timeStr);
         }
@@ -182,6 +180,32 @@ public class GameView implements GUICreator {
         @Override
         public Component getRootComponent() {
             return frame;
+        }
+    }
+
+    private class MoveMaker implements GameListener {
+
+        @Override
+        public void movePlayed(Move move) {
+            int idx = moveItr.nextIndex();
+            moveItr = game.getMoveList().listIterator(idx); // list changed, updating the iterator
+
+            if(followGame) {
+                clearHighlights();
+                lastMove = moveItr.next();
+                boardView.play(lastMove);
+                updateHighlights(move);
+            }
+        }
+
+        @Override
+        public void gameEnded(Game.Result result, Game.Termination termination) {
+            //TODO
+        }
+
+        @Override
+        public void timeTick(Clock clock) {
+            //TODO update time displays
         }
     }
 }

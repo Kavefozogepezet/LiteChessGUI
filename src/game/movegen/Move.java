@@ -60,7 +60,7 @@ public class Move {
     }
 
     public Piece getPromotionPiece() {
-        final Piece promPieces[][] = {
+        final Piece[][] promPieces = {
             { Piece.WQueen, Piece.WRook, Piece.WKnight, Piece.WBishop },
             { Piece.BQueen, Piece.BRook, Piece.BKnight, Piece.BBishop }
         };

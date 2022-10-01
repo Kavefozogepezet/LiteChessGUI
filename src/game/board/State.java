@@ -1,7 +1,6 @@
 package game.board;
 
 import game.movegen.Move;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 
@@ -42,7 +41,7 @@ public class State {
         ply = 0;
     }
 
-    public void movePlayed(@NotNull Move move) {
+    public void movePlayed(Move move) {
         prevStates.add(new Record(castlingRights, epTarget));
 
         epTarget = Square.invalid;
@@ -83,6 +82,10 @@ public class State {
         return (castlingRights & flag) != 0;
     }
 
+    public int getCastleRights() {
+        return castlingRights;
+    }
+
     public Square getEpTarget() {
         return epTarget;
     }
@@ -92,4 +95,9 @@ public class State {
     }
 
     public int getPly() { return ply; }
+
+    public int get50move() {
+        //TODO implement 50 move counting
+        return 0;
+    }
 }

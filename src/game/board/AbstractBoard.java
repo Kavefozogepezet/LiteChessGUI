@@ -1,7 +1,6 @@
 package game.board;
 
 import game.movegen.Move;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBoard {
     public static final int BOARD_SIZE = 8;
@@ -17,7 +16,7 @@ public abstract class AbstractBoard {
         kings[1] = null;
     }
 
-    public void setPiece(@NotNull Square square, Piece piece) {
+    public void setPiece(Square square, Piece piece) {
         if(piece != null && piece.type == PieceType.King)
             kings[piece.side.ordinal()] = square;
     }
@@ -26,7 +25,7 @@ public abstract class AbstractBoard {
         setPiece(new Square(file, rank), piece);
     }
 
-    public void removePiece(@NotNull Square square) {
+    public void removePiece(Square square) {
         Piece piece = getPiece(square);
         if(piece.type == PieceType.King)
             kings[piece.side.ordinal()] = null;
@@ -36,7 +35,7 @@ public abstract class AbstractBoard {
         removePiece(new Square(file, rank));
     }
 
-    public abstract Piece getPiece(@NotNull Square square);
+    public abstract Piece getPiece(Square square);
 
     public final Piece getPiece(int file, int rank) {
         return getPiece(new Square(file, rank));
@@ -46,7 +45,7 @@ public abstract class AbstractBoard {
         return kings[side.ordinal()];
     }
 
-    public void play(@NotNull Move move) {
+    public void play(Move move) {
         removePiece(move.from);
 
         if(move.isPromotion())
@@ -70,7 +69,7 @@ public abstract class AbstractBoard {
             removePiece(Square.cross(move.to, move.from));
     }
 
-    public void unplay(@NotNull Move move) {
+    public void unplay(Move move) {
         removePiece(move.to);
         setPiece(move.from, move.moving);
 
