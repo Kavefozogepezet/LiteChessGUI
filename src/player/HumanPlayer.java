@@ -47,7 +47,7 @@ public class HumanPlayer implements Player {
 
                 if(gameView.getBoardView().getPiece(sq) != null) {
                     sel = sq;
-                    selMoves = gameView.getGame().getMoves(sq);
+                    selMoves = gameView.getGame().getPossibleMoves().from(sq);
                 }
                 setHighlight();
             }
@@ -97,5 +97,10 @@ public class HumanPlayer implements Player {
     public void bind(Game game) {
         if(this.game == null)
             this.game = game;
+    }
+
+    @Override
+    public String getName() {
+        return "Human";
     }
 }

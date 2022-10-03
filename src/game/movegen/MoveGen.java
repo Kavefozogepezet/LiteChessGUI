@@ -1,7 +1,6 @@
 package game.movegen;
 
 import GUI.BoardView;
-import game.Game;
 import game.board.*;
 
 import java.util.HashMap;
@@ -16,7 +15,8 @@ public class MoveGen {
             { 1, 2 }, { 2, 1 }, { 2, -1 }, { 1, -2 }, { -1, -2 }, { -2, -1 }, { -2, 1 }, { -1, 2 }
     };
 
-    private final Game game;
+    AbstractBoard board = null;
+    State state = null;
 
     private final BitBoard
             checkBoard = new BitBoard(),
@@ -27,16 +27,18 @@ public class MoveGen {
     private boolean check, doublecheck;
 
     HashMap<Square, LinkedList<Move>> moves = new HashMap<>();
+    HashMap<Square, LinkedList<Move>> movesToSq = new HashMap<>();
 
-    public MoveGen(Game game) {
-        this.game = game;
-
+    public MoveGen() {
         for(int i = 0; i < pinBoards.length; i++)
             pinBoards[i] = new BitBoard();
     }
 
-    public void generate() {
+    public void generate(AbstractBoard board, State state) {
+        this.board = board;
+        this.state = state;
         moves.clear();
+        movesToSq.clear();
         fillInfo();
         fillMoves();
     }
@@ -45,10 +47,24 @@ public class MoveGen {
         return check;
     }
 
+    public LinkedList<Move> from(Square origin) {
+        var list = moves.get(origin);
+        return list == null ? new LinkedList<>() : list;
+    }
+
+    public LinkedList<Move> to(Square sq) {
+        var list = movesToSq.get(sq);
+        return list == null ? new LinkedList<>() : list;
+    }
+
+    public boolean isEmpty() {
+        return moves.isEmpty();
+    }
+
     // ---------- INFO ----------
 
     private void fillPawnInfo(Square origin) {
-        Piece pawn = game.getBoard().getPiece(origin);
+        Piece pawn = board.getPiece(origin);
         int dRank = pawn.isWhite() ? 1 : -1;
 
         Square[] captSq = { origin.shift(1, dRank), origin.shift(-1, dRank) };
@@ -75,14 +91,14 @@ public class MoveGen {
     }
 
     private void fillSlidingInfo(Square origin) {
-        Piece sliding = game.getBoard().getPiece(origin);
+        Piece sliding = board.getPiece(origin);
         int dIdx = sliding.type == PieceType.Queen ? 1 : 2;
         int startIdx = sliding.type == PieceType.Bishop ? 1 : 0;
 
         for(int i = startIdx; i < directions.length; i += dIdx) {
             var dir = directions[i];
             for(Square sq = origin.shift(dir[0], dir[1]); sq.valid(); sq = sq.shift(dir[0], dir[1])) {
-                Piece capt = game.getBoard().getPiece(sq);
+                Piece capt = board.getPiece(sq);
                 attackBoard.set(sq);
                 if(capt != null && !(capt.type == PieceType.King && capt.side != sliding.side))
                     break;
@@ -99,15 +115,15 @@ public class MoveGen {
         check = false;
         doublecheck = false;
 
-        Side side = game.getState().getTurn();
+        Side side = state.getTurn();
         Side attacker = side.other();
         Square king = null;
 
-        // Attack game.game.getBoard()
+        // Attack game.board
         for(int rank = 0; rank < BoardView.BOARD_SIZE; rank++) {
             for(int file = 0; file < BoardView.BOARD_SIZE; file++) {
                 Square origin = new Square(file, rank);
-                Piece piece = game.getBoard().getPiece(origin);
+                Piece piece = board.getPiece(origin);
 
                 if(piece == null)
                     continue;
@@ -135,7 +151,7 @@ public class MoveGen {
         for(var knightMove : knightMoves) {
             Square sq = king.shift(knightMove[0], knightMove[1]);
             if(sq.valid()) {
-                Piece piece = game.getBoard().getPiece(sq);
+                Piece piece = board.getPiece(sq);
                 if(piece != null && piece.type == PieceType.Knight && piece.side == attacker) {
                     checkBoard.set(sq);
                     checkCount++;
@@ -147,7 +163,7 @@ public class MoveGen {
         Square[] captSq = { king.shift(1, dRank), king.shift(-1, dRank) };
         for(var sq : captSq) {
             if (sq.valid()) {
-                Piece piece = game.getBoard().getPiece(sq);
+                Piece piece = board.getPiece(sq);
                 if(piece != null && piece.type == PieceType.Pawn && piece.side == attacker)
                     checkBoard.set(sq);
             }
@@ -161,7 +177,7 @@ public class MoveGen {
             boolean diag = i % 2 == 1;
 
             for(Square sq = king.shift(dir[0], dir[1]); sq.valid(); sq = sq.shift(dir[0], dir[1])) {
-                Piece target = game.getBoard().getPiece(sq);
+                Piece target = board.getPiece(sq);
                 current.set(sq);
 
                 if(target != null) {
@@ -202,23 +218,14 @@ public class MoveGen {
     // ---------- MOVE ----------
 
     private void addIfLegal(Move move) {
-        LinkedList<Move> movelist;
-
-        if(!moves.containsKey(move.from)) {
-            movelist = new LinkedList<>();
-            moves.put(move.from, movelist);
-        } else {
-            movelist = moves.get(move.from);
-        }
-
         if(move.captured != null && move.captured.side == move.moving.side)
             return;
 
         // TODO check testing
-        int pDir = game.getState().getTurn() == Side.White ? -1 : 1;
+        int pDir = state.getTurn() == Side.White ? -1 : 1;
         Square
-                epPawn = game.getState().getEpTarget().shift(0, pDir),
-                king = game.getBoard().getKing(game.getState().getTurn());
+                epPawn = state.getEpTarget().shift(0, pDir),
+                king = board.getKing(state.getTurn());
 
         boolean kingIsMoving = move.moving.type == PieceType.King;
 
@@ -237,10 +244,10 @@ public class MoveGen {
             if(diag || absDR == 0) {
                 int[] dir = { (epPawn.file - king.file) / absDF, (epPawn.rank - king.rank) / absDR };
                 for(Square target = king.shift(dir[0], dir[1]); target.valid(); target = target.shift(dir[0], dir[1])) {
-                    Piece tp = game.getBoard().getPiece(target);
+                    Piece tp = board.getPiece(target);
                     if(tp == null || target == move.from)
                         continue;
-                    else if(tp.side == game.getState().getTurn())
+                    else if(tp.side == state.getTurn())
                         break;
                     else {
                         if(
@@ -277,7 +284,11 @@ public class MoveGen {
             }
         }
 
+        LinkedList<Move> movelist = moves.computeIfAbsent(move.from, k -> new LinkedList<>());
+        LinkedList<Move> moveToList = movesToSq.computeIfAbsent(move.to, k -> new LinkedList<>());
+
         movelist.add(move);
+        moveToList.add(move);
     }
 
     private void addWithPromotion(Square from, Square to, Piece pawn, Piece captured) {
@@ -293,16 +304,16 @@ public class MoveGen {
     }
 
     private void fillPawnMoves(Square origin) {
-        Piece pawn = game.getBoard().getPiece(origin);
+        Piece pawn = board.getPiece(origin);
         int dRank = pawn.isWhite() ? 1 : -1;
         int baseRank = pawn.isWhite() ? 1 : 6;
 
         Square push = origin.shift(0, dRank);
-        if(game.getBoard().getPiece(push) == null) {
+        if(board.getPiece(push) == null) {
             addWithPromotion(origin, push, pawn, null);
 
             Square dpush = push.shift(0, dRank);
-            if(origin.rank == baseRank && game.getBoard().getPiece(dpush) == null)
+            if(origin.rank == baseRank && board.getPiece(dpush) == null)
                 addIfLegal(new Move(origin, dpush, pawn, null, Move.DOUBLE_PUSH));
         }
 
@@ -311,45 +322,45 @@ public class MoveGen {
             if(!sq.valid())
                 continue;
 
-            Piece capt = game.getBoard().getPiece(sq);
+            Piece capt = board.getPiece(sq);
             if(capt != null && capt.side != pawn.side)
                 addWithPromotion(origin, sq, pawn, capt);
-            else if(game.getState().getEpTarget().equals(sq)) {
-                Piece epCapt = game.getBoard().getPiece(Square.cross(sq, origin));
+            else if(state.getEpTarget().equals(sq)) {
+                Piece epCapt = board.getPiece(Square.cross(sq, origin));
                 addIfLegal(new Move(origin, sq, pawn, epCapt, Move.EN_PASSANT));
             }
         }
     }
 
     private void fillKnightMoves(Square origin) {
-        Piece knight = game.getBoard().getPiece(origin);
+        Piece knight = board.getPiece(origin);
         for(var knightMove : knightMoves) {
             Square sq = origin.shift(knightMove[0], knightMove[1]);
             if(sq.valid()) {
-                Piece cap = game.getBoard().getPiece(sq);
+                Piece cap = board.getPiece(sq);
                 addIfLegal(new Move(origin, sq, knight, cap));
             }
         }
     }
 
     private boolean isQuietSq(Square sq) {
-        return game.getBoard().getPiece(sq) == null && !attackBoard.get(sq);
+        return board.getPiece(sq) == null && !attackBoard.get(sq);
     }
 
     private void fillKingMoves(Square origin) {
-        Piece king = game.getBoard().getPiece(origin);
+        Piece king = board.getPiece(origin);
         for(var dir : directions) {
             Square to = origin.shift(dir[0], dir[1]);
 
             if(!to.valid())
                 continue;
 
-            Piece capt = game.getBoard().getPiece(to);
+            Piece capt = board.getPiece(to);
             addIfLegal(new Move(origin, to, king, capt));
         }
 
         int castleMask = king.isWhite() ? State.CASTLE_W : State.CASTLE_B;
-        if (game.getState().canCastle(State.CASTLE_K & castleMask)) {
+        if (state.canCastle(State.CASTLE_K & castleMask)) {
             if(
                     !check &&
                     isQuietSq(origin.shift(1, 0)) &&
@@ -358,12 +369,12 @@ public class MoveGen {
                 addIfLegal(new Move(origin, origin.shift(2, 0), king, null, Move.CASTLE_K));
             }
         }
-        if(game.getState().canCastle(State.CASTLE_Q & castleMask)) {
+        if(state.canCastle(State.CASTLE_Q & castleMask)) {
             if(
                     !check &&
                     isQuietSq(origin.shift(-1, 0)) &&
                     isQuietSq(origin.shift(-2, 0)) &&
-                    game.getBoard().getPiece(origin.shift(-3, 0)) == null
+                    board.getPiece(origin.shift(-3, 0)) == null
             ) {
                 addIfLegal(new Move(origin, origin.shift(-2, 0), king, null, Move.CASTLE_Q));
             }
@@ -371,14 +382,14 @@ public class MoveGen {
     }
 
     private void fillSlidingMoves(Square origin) {
-        Piece sliding = game.getBoard().getPiece(origin);
+        Piece sliding = board.getPiece(origin);
         int dIdx = sliding.type == PieceType.Queen ? 1 : 2;
         int startIdx = sliding.type == PieceType.Bishop ? 1 : 0;
 
         for(int i = startIdx; i < directions.length; i += dIdx) {
             var dir = directions[i];
             for(Square sq = origin.shift(dir[0], dir[1]); sq.valid(); sq = sq.shift(dir[0], dir[1])) {
-                Piece capt = game.getBoard().getPiece(sq);
+                Piece capt = board.getPiece(sq);
                 addIfLegal(new Move(origin, sq, sliding, capt));
                 if(capt != null)
                     break;
@@ -390,9 +401,9 @@ public class MoveGen {
         for(int rank = 0; rank < BoardView.BOARD_SIZE; rank++) {
             for(int file = 0; file < BoardView.BOARD_SIZE; file++) {
                 Square sq = new Square(file, rank);
-                Piece moving = game.getBoard().getPiece(sq);
+                Piece moving = board.getPiece(sq);
 
-                if(moving == null || moving.side != game.getState().getTurn())
+                if(moving == null || moving.side != state.getTurn())
                     continue;
 
                 switch(moving.type) {
@@ -403,15 +414,5 @@ public class MoveGen {
                 }
             }
         }
-    }
-
-    public LinkedList<Move> getMoves(Square origin) {
-        if(!moves.containsKey(origin))
-            return null;
-        return moves.get(origin);
-    }
-
-    public boolean isEmpty() {
-        return moves.isEmpty();
     }
 }

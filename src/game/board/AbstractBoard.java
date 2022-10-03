@@ -27,7 +27,7 @@ public abstract class AbstractBoard {
 
     public void removePiece(Square square) {
         Piece piece = getPiece(square);
-        if(piece.type == PieceType.King)
+        if(piece != null && piece.type == PieceType.King)
             kings[piece.side.ordinal()] = null;
     }
 
@@ -45,6 +45,7 @@ public abstract class AbstractBoard {
         return kings[side.ordinal()];
     }
 
+    // TODO check detection
     public void play(Move move) {
         removePiece(move.from);
 
@@ -69,6 +70,7 @@ public abstract class AbstractBoard {
             removePiece(Square.cross(move.to, move.from));
     }
 
+    // TODO check detection
     public void unplay(Move move) {
         removePiece(move.to);
         setPiece(move.from, move.moving);

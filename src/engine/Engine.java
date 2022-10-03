@@ -2,11 +2,10 @@ package engine;
 
 import game.Game;
 
-import java.awt.event.ActionListener;
-
 public interface Engine extends Runnable {
-    boolean verificationFailure();
+    void verify() throws EngineVerificationFailure;
     void isReady(); // waits until engine is ready
+    void quit();
 
     void startSearch();
     void stopSearch();
@@ -16,4 +15,8 @@ public interface Engine extends Runnable {
 
     void playingThis(Game game);
     Game getCurrentGame();
+
+    void setOption(String option, String value);
+
+    String getEngineName();
 }

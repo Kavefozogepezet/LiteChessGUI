@@ -1,17 +1,25 @@
-package game.board;
+package GUI;
 
+import game.board.Piece;
+import game.board.PieceType;
+import game.board.Side;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
+import java.awt.color.ColorSpace;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.*;
 
 
 public class BoardStyle {
-    private static final File texDir = new File(System.getProperty("user.dir"), "textures");
+    private static final File stylesDir = new File(System.getProperty("user.dir"), "styles");
     private static final Image[][] imgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
+    private static final Image[][] cacheImgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
 
     // colors
     public static Color baseWhite = new Color(222, 189, 144);
@@ -34,9 +42,25 @@ public class BoardStyle {
         return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
+    public static Image getPieceTexResized(Piece piece, Dimension size) {
+        return getPieceTexResized(piece.side, piece.type, size);
+    }
+
+    public static Image getPieceTexResized(Side side, PieceType pieceType, Dimension size) {
+        Image cachedImg = cacheImgs[side.ordinal()][pieceType.ordinal()];
+        if(cachedImg != null && cachedImg.getWidth(null) == size.width && cachedImg.getHeight(null) == size.height)
+            return cachedImg;
+        else {
+            cacheImgs[side.ordinal()][pieceType.ordinal()] =
+                    getPieceTexture(side, pieceType)
+                            .getScaledInstance(size.width, size.height, Image.SCALE_AREA_AVERAGING);
+            return cacheImgs[side.ordinal()][pieceType.ordinal()];
+        }
+    }
+
     public static void loadStyle(String styleName) {
         JSONParser parser = new JSONParser();
-        File dir = new File(texDir, styleName);
+        File dir = new File(stylesDir, styleName);
         File json = new File(dir, dir.getName() + ".json");
 
         try(

@@ -4,7 +4,7 @@ import GUI.BoardView;
 import game.Game;
 import game.board.*;
 
-public class Fen implements GameSetup {
+public class FEN implements GameSetup {
     public static final String STARTPOS_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private static final String[] castling = {
             "-", "K", "Q", "KQ", "k", "Kk", "Qk", "KQk", "q", "Kq", "Qq", "KQq", "kq", "Kkq", "Qkq", "KQkq"
@@ -12,11 +12,11 @@ public class Fen implements GameSetup {
 
     private String fen = STARTPOS_FEN;
 
-    public Fen(String fen) {
+    public FEN(String fen) {
         this.fen = fen;
     }
 
-    public Fen(Game game) {
+    public FEN(Game game) {
         StringBuilder fenBuilder = new StringBuilder();
         Board board = game.getBoard();
 
@@ -56,6 +56,7 @@ public class Fen implements GameSetup {
         fen = fenBuilder.toString();
     }
 
+    // TODO fix ply conversion
     public void set(Game game) {
         String[] sections = fen.split(" ");
 

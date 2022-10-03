@@ -1,5 +1,6 @@
 package GUI;
 
+import audio.AudioFX;
 import extensions.ColorUtil;
 import game.Clock;
 import game.Game;
@@ -57,8 +58,8 @@ public class GameView implements GUICreator {
         moveItr = game.getMoveList().listIterator(game.getMoveList().size());
         game.addListener(gameListener);
         boardView.copyBoard(game.getBoard());
-        //playersBars[Side.White.ordinal()].setPlayer(game.getPlayer(Side.White));
-        //playersBars[Side.Black.ordinal()].setPlayer(game.getPlayer(Side.Black));
+        playersBars[Side.White.ordinal()].setPlayer(game.getPlayer(Side.White).getName());
+        playersBars[Side.Black.ordinal()].setPlayer(game.getPlayer(Side.Black).getName());
         playersBars[Side.White.ordinal()].setTime(game.getClock());
         playersBars[Side.Black.ordinal()].setTime(game.getClock());
         GUIRoot.repaint();
@@ -186,7 +187,10 @@ public class GameView implements GUICreator {
     private class MoveMaker implements GameListener {
 
         @Override
-        public void movePlayed(Move move) {
+        public void movePlayed(Move move, String SAN) {
+            System.out.println(game.getState().getPly() + " " + SAN);
+            playersBars[game.getState().getTurn().other().ordinal()].setTime(game.getClock());
+
             int idx = moveItr.nextIndex();
             moveItr = game.getMoveList().listIterator(idx); // list changed, updating the iterator
 
@@ -200,12 +204,12 @@ public class GameView implements GUICreator {
 
         @Override
         public void gameEnded(Game.Result result, Game.Termination termination) {
-            //TODO
+            AudioFX.play(AudioFX.Name.GAME_END);
         }
 
         @Override
         public void timeTick(Clock clock) {
-            //TODO update time displays
+            playersBars[game.getState().getTurn().ordinal()].setTime(game.getClock());
         }
     }
 }

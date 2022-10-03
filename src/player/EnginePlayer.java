@@ -1,9 +1,6 @@
 package player;
 
-import engine.Engine;
-import engine.EngineConfig;
-import engine.EngineListener;
-import engine.UCIEngine;
+import engine.*;
 import game.Game;
 import game.board.Square;
 import game.movegen.Move;
@@ -23,13 +20,9 @@ public class EnginePlayer implements Player {
     private Move convertMove(String moveStr) {
         // TODO testing from && to && promotion instead
         Square from = Square.parse(moveStr.substring(0, 2));
-        var list = game.getMoves(from);
-
-        if(list != null) {
-            for (var move : game.getMoves(from)) {
-                if (move.toString().equals(moveStr))
-                    return move;
-            }
+        for (var move : game.getPossibleMoves().from(from)) {
+            if (move.toString().equals(moveStr))
+                return move;
         }
         return null;
     }
@@ -65,6 +58,11 @@ public class EnginePlayer implements Player {
             this.game = game;
     }
 
+    @Override
+    public String getName() {
+        return engine.getEngineName();
+    }
+
     private class MoveListener implements engine.EngineListener {
 
         @Override
@@ -75,8 +73,6 @@ public class EnginePlayer implements Player {
         }
 
         @Override
-        public void info(String[] info) {
-
-        }
+        public void info(SearchInfo info) {}
     }
 }

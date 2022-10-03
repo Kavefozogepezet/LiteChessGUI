@@ -2,12 +2,12 @@ package game;
 
 import game.board.Board;
 import game.board.Side;
-import game.board.Square;
 import game.board.State;
 import game.event.GameListener;
 import game.movegen.Move;
 import game.movegen.MoveGen;
-import game.setup.Fen;
+import game.movegen.SANBuilder;
+import game.setup.FEN;
 import game.setup.GameSetup;
 import game.setup.StartPos;
 import player.Player;
@@ -37,7 +37,7 @@ public class Game {
     private State state = new State();
     private final Player[] players = new Player[2];
     private final LinkedList<Move> moveList = new LinkedList<Move>();
-    private final MoveGen movesNow = new MoveGen(this);
+    private final MoveGen possibleMoves = new MoveGen();
 
     private Result result = null;
     private Termination termination = null;
@@ -54,7 +54,7 @@ public class Game {
         players[Side.Black.ordinal()] = black;
         white.bind(this);
         black.bind(this);
-        movesNow.generate();
+        possibleMoves.generate(board, state);
     }
 
     public Game(Player white, Player black, GameSetup setup, Clock.Format format) {
@@ -108,7 +108,7 @@ public class Game {
     }
     public void setStartFen(String fen) {
         startFen = fen;
-        if(fen.equals(Fen.STARTPOS_FEN))
+        if(fen.equals(FEN.STARTPOS_FEN))
             defaultStart = true;
     }
 
@@ -121,8 +121,8 @@ public class Game {
     public LinkedList<Move> getMoveList() {
         return moveList;
     }
-    public LinkedList<Move> getMoves(Square sq) {
-        return movesNow.getMoves(sq);
+    public MoveGen getPossibleMoves() {
+        return possibleMoves;
     }
     public Clock getClock() {
         return clock;
@@ -151,30 +151,36 @@ public class Game {
         if(hasEnded())
             return;
 
+        SANBuilder san = new SANBuilder(move, possibleMoves);
         board.play(move);
         state.movePlayed(move);
 
-        if(clock != null)
+        if(usesTimeControl())
             clock.movePlayed();
 
         moveList.add(move);
-        movesNow.generate();
+        possibleMoves.generate(board, state);
 
-        invokeMovePlayed();
-
-        if(movesNow.isEmpty()) {
+        if(possibleMoves.isEmpty()) {
             termination = Termination.NORMAL;
-            if(movesNow.isCheck())
+            if(possibleMoves.isCheck()) { // TODO get check from board
+                san.mate();
                 result = state.getTurn() == Side.Black
                         ? Result.WHITE_WINS
                         : Result.BLACK_WINS;
+            }
+            invokeMovePlayed(san.toString());
             invokeGameEnd();
         } else {
+            if(possibleMoves.isCheck())
+                san.check();
+            invokeMovePlayed(san.toString());
             players[state.getTurn().ordinal()].myTurn();
         }
     }
 
     public void resign() {
+        players[state.getTurn().ordinal()].cancelTurn();
         endGame(Result.lost(state.getTurn()), Termination.FORFEIT);
     }
 
@@ -192,8 +198,8 @@ public class Game {
         for(var listener : gameListeners)
             listener.gameEnded(result, termination);
     }
-    private void invokeMovePlayed() {
+    private void invokeMovePlayed(String SAN) {
         for(var listener : gameListeners)
-            listener.movePlayed(moveList.getLast());
+            listener.movePlayed(moveList.getLast(), SAN);
     }
 }

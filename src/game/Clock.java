@@ -8,6 +8,16 @@ import java.awt.event.ActionListener;
 
 public class Clock {
     public static class Format {
+        public static final int MINUTE = 60;
+        public static final int HOUR = MINUTE * 60;
+
+        public static final Format FIDE_Blitz = new Format(3 * MINUTE, 2, IncType.FISCHER);
+        public static final Format FIDE_Rapid = new Format(15 * MINUTE, 10, IncType.FISCHER);
+        public static final Format Classical = new Format(30 * MINUTE);
+        public static final Format Rapid = new Format(10 * MINUTE);
+        public static final Format Blitz = new Format(5 * MINUTE);
+        public static final Format Bullet = new Format(MINUTE);
+
         public enum IncType {
             NONE, DELAY, BRONSTEIN, FISCHER
         }
@@ -26,9 +36,15 @@ public class Clock {
         }
 
         public Format(int wtime, int btime) {
-            this.time[Side.White.ordinal()] = wtime * 10;
-            this.time[Side.Black.ordinal()] = btime * 10;
-            this.type = IncType.NONE;
+            this(wtime, 0, btime, 0, IncType.NONE);
+        }
+
+        public Format(int time, int inc, IncType type) {
+            this(time, inc, time, inc, type);
+        }
+
+        public Format(int time) {
+            this(time, 0, time, 0, IncType.NONE);
         }
     }
 
@@ -86,7 +102,7 @@ public class Clock {
         int sIdx = clockState.ordinal();
 
         if(!isRunning())
-            return;
+            timer.start();
 
         switch (format.type) {
             case FISCHER -> remaining[sIdx] += format.inc[sIdx];
@@ -103,6 +119,9 @@ public class Clock {
 
         if(format.type != Format.IncType.DELAY || used[sIdx] > format.inc[sIdx])
             remaining[sIdx]--;
+
+        if(remaining[sIdx] == 0)
+            timer.stop();
     }
 
     public String getTimeStr(Side side) {

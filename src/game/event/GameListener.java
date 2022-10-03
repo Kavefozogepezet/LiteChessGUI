@@ -6,7 +6,7 @@ import game.board.Square;
 import game.movegen.Move;
 
 public interface GameListener {
-    void movePlayed(Move move);
+    void movePlayed(Move move, String SAN);
     void gameEnded(Game.Result result, Game.Termination termination);
     void timeTick(Clock clock);
 }

@@ -1,7 +1,6 @@
 package game.movegen;
 
-import game.board.Piece;
-import game.board.Square;
+import game.board.*;
 
 public class Move {
     // Flags
