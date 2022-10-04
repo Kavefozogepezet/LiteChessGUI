@@ -62,6 +62,9 @@ public class EngineOutPanel implements GUICreator {
         return GUIRoot;
     }
 
+    @Override
+    public void adjustGUI() {}
+
     private class SearchInfoListener implements EngineListener {
         private boolean setToClear = false;
 

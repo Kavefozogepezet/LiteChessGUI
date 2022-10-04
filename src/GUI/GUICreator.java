@@ -5,4 +5,5 @@ import java.awt.*;
 public interface GUICreator {
     Component createGUI();
     Component getRootComponent();
+    void adjustGUI();
 }

@@ -1,11 +1,14 @@
 package engine;
 
+import com.sun.java.swing.plaf.windows.WindowsTextAreaUI;
+import extensions.MathExt;
 import game.Clock;
 import game.Game;
 import game.board.Side;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -15,6 +18,7 @@ public class UCIEngine implements Engine {
     private Process engineProcess = null;
     private boolean isok = false;
     private boolean running = false;
+    private boolean initStart = false;
 
     private Game game;
     private String pvMove = null;
@@ -111,6 +115,11 @@ public class UCIEngine implements Engine {
     }
 
     @Override
+    public void setInitStart(boolean initStart) {
+        this.initStart = initStart;
+    }
+
+    @Override
     public void setOption(String option, String value) {
         out.println("setoption name " + option + " value " + value);
     }
@@ -143,16 +152,20 @@ public class UCIEngine implements Engine {
             String inputLine;
             do {
                 inputLine = in.nextLine();
-            } while(inputLine.equals("uciok"));
+                String[] line = inputLine.split(" ");
+                if(line[0].equals("id") && line[1].equals("name"))
+                    name = line[2];
+                else if (initStart && line[0].equals("option")) {
+                    var option = readOption(line);
+                    config.options.put(option.name, option);
+                }
+            } while(!inputLine.equals("uciok"));
 
             out.println("ucinewgame");
             out.println("isready");
             do {
                 inputLine = in.nextLine();
-                String[] line = inputLine.split(" ");
-                if(line[0].equals("id") && line[1].equals("name"))
-                    name = line[2];
-            } while(inputLine.equals("readyok"));
+            } while(!inputLine.equals("readyok"));
 
             running = true;
             synchronized (this) {
@@ -260,5 +273,38 @@ public class UCIEngine implements Engine {
             }
         }
         out.println(command);
+    }
+
+    private EngineConfig.AbstractOption readOption(String[] line) {
+        StringBuilder nameBuilder = new StringBuilder();
+        String type = "-", value = "";
+        int min = Integer.MIN_VALUE, max = Integer.MAX_VALUE;
+        ArrayList<String> options = new ArrayList<>();
+
+        int idx = 2;
+        while(!line[idx].equals("type"))
+            nameBuilder.append(line[idx++]);
+
+        type = line[++idx];
+
+        for(; idx < line.length - 1; idx++) {
+            switch (line[idx]) {
+                case "default" -> value = line[++idx];
+                case "min" -> min = Integer.parseInt(line[++idx]);
+                case "max" -> max = Integer.parseInt(line[++idx]);
+                case "var" -> options.add(line[++idx]);
+            }
+        }
+
+        String name = nameBuilder.toString();
+        EngineConfig.AbstractOption option = null;
+        switch (type) {
+            case "check" -> option = new EngineConfig.CheckOption(name, Boolean.parseBoolean(value));
+            case "spin" -> option = new EngineConfig.SpinOption(name, min, max, Integer.parseInt(value));
+            case "combo" -> option = new EngineConfig.ComboOption(name, value, options);
+            case "button" -> option = new EngineConfig.ButtonOption(name);
+            case "string" -> option = new EngineConfig.StringOption(name, value);
+        }
+        return option;
     }
 }

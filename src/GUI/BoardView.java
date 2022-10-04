@@ -1,5 +1,6 @@
 package GUI;
 
+import app.LiteChessGUI;
 import audio.AudioFX;
 import extensions.ColorUtil;
 import game.board.*;
@@ -117,7 +118,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
         GUIRoot.removeAll(); // if being recreated, remove previous GUI
         GUIRoot.setLayout(new GridBagLayout());
 
-        int gridOffset = BoardStyle.showCoordinates ? 1 : 0;
+        int gridOffset = LiteChessGUI.style.showCoordinates ? 1 : 0;
 
         GridBagConstraints cell = new GridBagConstraints();
         cell.weightx = 1.0f;
@@ -173,7 +174,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
         });
 
         // notation
-        if(BoardStyle.showCoordinates) {
+        if(LiteChessGUI.style.showCoordinates) {
             for (int i = 0; i < BOARD_SIZE; i++) {
                 coord.gridy = 0;
                 coord.gridx = i + 1;
@@ -227,6 +228,9 @@ public class BoardView extends AbstractBoard implements GUICreator {
         return GUIRoot;
     }
 
+    @Override
+    public void adjustGUI() {}
+
     public enum SqInfoHL {
         None, Checked, Moved, Arrived,
     }
@@ -277,8 +281,8 @@ public class BoardView extends AbstractBoard implements GUICreator {
         public SquareButton(Square sq) {
             mySquare = sq;
             baseColor = (sq.file + sq.rank) % 2 == 0 ?
-                    BoardStyle.baseWhite :
-                    BoardStyle.baseBlack;
+                    LiteChessGUI.style.baseWhite :
+                    LiteChessGUI.style.baseBlack;
 
             setBackground(baseColor);
             addMouseListener(new SquareMouseListener());
@@ -307,14 +311,14 @@ public class BoardView extends AbstractBoard implements GUICreator {
             if(moveState == SqMoveHL.None) {
                 switch (infoState) {
                     case None -> setBackground(baseColor);
-                    case Checked -> setBackground(ColorUtil.blend(baseColor, BoardStyle.sqihCheck));
-                    case Moved -> setBackground(ColorUtil.blend(baseColor, BoardStyle.sqihMoved));
-                    case Arrived -> setBackground(ColorUtil.blend(baseColor, BoardStyle.sqihArrived));
+                    case Checked -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqihCheck));
+                    case Moved -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqihMoved));
+                    case Arrived -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqihArrived));
                 }
             }else {
                 switch(moveState) {
-                    case Move -> setBackground(ColorUtil.blend(baseColor, BoardStyle.sqmhMove));
-                    case Selected -> setBackground(ColorUtil.blend(baseColor, BoardStyle.sqmhSelected));
+                    case Move -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqmhMove));
+                    case Selected -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqmhSelected));
                 }
             }
         }
@@ -328,10 +332,10 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
             var size = getSize();
             if(quietPaint) {
-                var pieceImg = BoardStyle.getPieceTexResized(piece, size);
+                var pieceImg = LiteChessGUI.style.getPieceTexResized(piece, size);
                 g.drawImage(pieceImg, 0, 0, this);
             } else {
-                g.drawImage(BoardStyle.getPieceTexture(piece), 0, 0, size.width, size.height, this);
+                g.drawImage(LiteChessGUI.style.getPieceTexture(piece), 0, 0, size.width, size.height, this);
             }
         }
     }

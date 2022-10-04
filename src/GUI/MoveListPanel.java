@@ -61,6 +61,9 @@ public class MoveListPanel implements GUICreator {
         return GUIRoot;
     }
 
+    @Override
+    public void adjustGUI() {}
+
     private class MoveListener implements GameListener {
         @Override
         public void movePlayed(Move move, String SAN) {

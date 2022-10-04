@@ -17,36 +17,48 @@ import java.io.*;
 
 
 public class BoardStyle {
+    private static final String defaultStyle = "default";
     private static final File stylesDir = new File(System.getProperty("user.dir"), "styles");
-    private static final Image[][] imgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
-    private static final Image[][] cacheImgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
+
+    private String currentStyleName = defaultStyle;
+
+    private final Image[][] imgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
+    private final Image[][] cacheImgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
 
     // colors
-    public static Color baseWhite = new Color(222, 189, 144);
-    public static Color baseBlack = new Color(189, 122, 67);
+    public Color baseWhite = new Color(222, 189, 144);
+    public Color baseBlack = new Color(189, 122, 67);
 
-    public static Color sqihCheck = new Color(255, 0, 0, 128);
-    public static Color sqihMoved = new Color(255, 179, 0, 128);
-    public static Color sqihArrived = new Color(255, 179, 0, 128);
+    public Color sqihCheck = new Color(255, 0, 0, 128);
+    public Color sqihMoved = new Color(255, 179, 0, 128);
+    public Color sqihArrived = new Color(255, 179, 0, 128);
 
-    public static Color sqmhSelected = new Color(0, 72, 17, 128);
-    public static Color sqmhMove = new Color(0, 255, 50, 128);
+    public Color sqmhSelected = new Color(0, 72, 17, 128);
+    public Color sqmhMove = new Color(0, 255, 50, 128);
 
-    public static boolean showCoordinates = true;
+    public boolean showCoordinates = true;
 
-    public static Image getPieceTexture(Piece piece) {
+    public BoardStyle() {
+        loadStyle(defaultStyle);
+    }
+
+    public String getCurrentStyleName() {
+        return currentStyleName;
+    }
+
+    public Image getPieceTexture(Piece piece) {
         return getPieceTexture(piece.side, piece.type);
     }
 
-    public static Image getPieceTexture(Side side, PieceType pieceType) {
+    public Image getPieceTexture(Side side, PieceType pieceType) {
         return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
-    public static Image getPieceTexResized(Piece piece, Dimension size) {
+    public Image getPieceTexResized(Piece piece, Dimension size) {
         return getPieceTexResized(piece.side, piece.type, size);
     }
 
-    public static Image getPieceTexResized(Side side, PieceType pieceType, Dimension size) {
+    public Image getPieceTexResized(Side side, PieceType pieceType, Dimension size) {
         Image cachedImg = cacheImgs[side.ordinal()][pieceType.ordinal()];
         if(cachedImg != null && cachedImg.getWidth(null) == size.width && cachedImg.getHeight(null) == size.height)
             return cachedImg;
@@ -58,7 +70,7 @@ public class BoardStyle {
         }
     }
 
-    public static void loadStyle(String styleName) {
+    public void loadStyle(String styleName) {
         JSONParser parser = new JSONParser();
         File dir = new File(stylesDir, styleName);
         File json = new File(dir, dir.getName() + ".json");
@@ -87,14 +99,13 @@ public class BoardStyle {
                     System.out.println("Loaded " + sides[sideIdx] + ' ' + pieces[pieceIdx] + ": " + pieceFile.getPath());
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        } catch (ParseException e) {
-            System.err.println(e.getMessage());
         }
+        currentStyleName = styleName;
     }
 
-    private static void LoadImage(int sIdx, int pIdx, File file) {
+    private void LoadImage(int sIdx, int pIdx, File file) {
         try {
             imgs[sIdx][pIdx] = ImageIO.read(file);
         } catch (IOException e) {

@@ -16,6 +16,7 @@ public interface Engine extends Runnable {
     void playingThis(Game game);
     Game getCurrentGame();
 
+    void setInitStart(boolean initStart);
     void setOption(String option, String value);
 
     String getEngineName();

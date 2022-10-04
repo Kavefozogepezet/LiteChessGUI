@@ -128,6 +128,9 @@ public class GameView implements GUICreator {
         return GUIRoot;
     }
 
+    @Override
+    public void adjustGUI() {}
+
     private class PlayerBar implements GUICreator {
         private static final String INFINITY_SYMBOL = "\u221e";
 
@@ -182,6 +185,9 @@ public class GameView implements GUICreator {
         public Component getRootComponent() {
             return frame;
         }
+
+        @Override
+        public void adjustGUI() {}
     }
 
     private class MoveMaker implements GameListener {

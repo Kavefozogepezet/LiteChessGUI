@@ -10,9 +10,6 @@ public class EngineManager {
     private final HashMap<String, EngineConfig> installedEngines = new HashMap<>();
     private final HashMap<String, EngineWrapper> runningEngines = new HashMap<>();
 
-    public EngineManager() {
-
-    }
 
     public Collection<String> getInstalledEngines() {
         return installedEngines.keySet();
@@ -24,6 +21,7 @@ public class EngineManager {
     {
         EngineConfig config = new EngineConfig(protocol, path);
         Engine engine = makeEngine(config);
+        engine.setInitStart(true);
         startEngineThread(engine);
 
         String name = engine.getEngineName();
@@ -48,6 +46,10 @@ public class EngineManager {
             engine = wrapper.getEngine();
 
         return engine;
+    }
+
+    public EngineConfig getConfig(String name) {
+        return installedEngines.get(name);
     }
 
     public void releaseInstance(Engine engine) {
