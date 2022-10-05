@@ -6,29 +6,42 @@ import GUI.Page;
 import audio.AudioFX;
 import engine.*;
 import com.formdev.flatlaf.FlatDarkLaf;
+import game.Game;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.io.File;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.*;
 
 public class LiteChessGUI {
     private static Page currentPage;
     private static JFrame window;
-    public static final EngineManager engineManager = new EngineManager();
-    public static final BoardStyle style = new BoardStyle();
+    public static EngineManager engineManager = new EngineManager();
+    public static BoardStyle style = new BoardStyle();
 
     public static void main(String[] args) {
         AudioFX.innit();
-        /*try {
+        try {
             UIManager.setLookAndFeel(new FlatDarkLaf());
             Font dFont = (Font)UIManager.getLookAndFeelDefaults().get("defaultFont");
             //UIManager.getLookAndFeelDefaults().put("defaultFont", dFont.deriveFont(14.0f));
         } catch (UnsupportedLookAndFeelException e) {
             throw new RuntimeException(e);
-        }*/
+        }
+        loadSettings();
+
         window = new JFrame("Lite Chess GUI");
         window.setSize(new Dimension(1280, 720));
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                saveSettings();
+            }
+        });
 
         loadPage(new GamePage());
 
@@ -53,5 +66,26 @@ public class LiteChessGUI {
 
     public static Page getCurrentPage() {
         return currentPage;
+    }
+
+    private static void loadSettings() {
+        try(
+                var stream = new ObjectInputStream(
+                        new FileInputStream(
+                                new File("settings.ser")))
+        ) {
+            engineManager = (EngineManager) stream.readObject();
+            Game game = (Game) stream.readObject();
+        } catch (Exception ignore) {}
+    }
+
+    private static void saveSettings() {
+        try(
+                var stream = new ObjectOutputStream(
+                        new FileOutputStream(
+                                new File("settings.ser")))
+        ) {
+            stream.writeObject(engineManager);
+        } catch (Exception ignore) {}
     }
 }

@@ -8,63 +8,22 @@ import game.movegen.Move;
 import game.board.Square;
 
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import java.util.LinkedList;
 
-public class HumanPlayer implements Player {
-    GameView gameView;
-    Game game = null;
+public class HumanPlayer implements Player, Serializable {
+    private transient GameView gameView = null;
+    private transient SquareListener myListener = null;
+
+    private Game game = null;
     private boolean myTurn = false;
-    private LinkedList<Move> selMoves = null;
-    private Square sel = null;
-
-    public HumanPlayer(GameView gameView) {
-        this.gameView = gameView;
-        gameView.getBoardView().addSquareListener(new SquareListener() {
-            @Override
-            public void squareClicked(Square sq, MouseEvent e) {
-                if(!(e.getButton() == MouseEvent.BUTTON1 && myTurn))
-                    return;
-
-                clearHighlights();
-
-                Move moveToPlay = null;
-                if(selMoves != null) {
-                    for (var move : selMoves) {
-                        if (move.to.equals(sq)) {
-                            moveToPlay = move;
-                            break;
-                        }
-                    }
-                }
-                sel = null;
-                selMoves = null;
-
-                if(moveToPlay != null) {
-                    game.play(moveToPlay);
-                    myTurn = false;
-                    return;
-                }
-
-                if(gameView.getBoardView().getPiece(sq) != null) {
-                    sel = sq;
-                    selMoves = gameView.getGame().getPossibleMoves().from(sq);
-                }
-                setHighlight();
-            }
-
-            @Override
-            public void squarePressed(Square sq, MouseEvent e) {
-
-            }
-
-            @Override
-            public void squareReleased(Square sq, MouseEvent e) {
-
-            }
-        });
-    }
+    private transient LinkedList<Move> selMoves = null;
+    private transient Square sel = null;
 
     private void clearHighlights() {
+        if(gameView == null)
+            return;
+
         if(selMoves != null)
             for (var move : selMoves)
                 gameView.getBoardView().setSqHighlight(move.to, BoardView.SqMoveHL.None);
@@ -94,9 +53,58 @@ public class HumanPlayer implements Player {
     }
 
     @Override
-    public void bind(Game game) {
-        if(this.game == null)
-            this.game = game;
+    public void setGame(Game game) {
+        clearHighlights();
+        sel = null;
+        selMoves = null;
+        this.game = game;
+    }
+
+    public void setGameView(GameView view) {
+        if(gameView != null)
+            gameView.getBoardView().removeSquareListener(myListener);
+
+        gameView = view;
+        myListener = new SquareListener() {
+            @Override
+            public void squareClicked(Square sq, MouseEvent e) {
+                if(!(e.getButton() == MouseEvent.BUTTON1 && myTurn))
+                    return;
+
+                clearHighlights();
+
+                Move moveToPlay = null;
+                if(selMoves != null) {
+                    for (var move : selMoves) {
+                        if (move.to.equals(sq)) {
+                            moveToPlay = move;
+                            break;
+                        }
+                    }
+                }
+                sel = null;
+                selMoves = null;
+
+                if(moveToPlay != null) {
+                    game.play(moveToPlay);
+                    myTurn = false;
+                    return;
+                }
+
+                if(view.getBoardView().getPiece(sq) != null) {
+                    sel = sq;
+                    selMoves = view.getGame().getPossibleMoves().from(sq);
+                }
+                setHighlight();
+            }
+
+            @Override
+            public void squarePressed(Square sq, MouseEvent e) {}
+
+            @Override
+            public void squareReleased(Square sq, MouseEvent e) {}
+        };
+        gameView.getBoardView().addSquareListener(myListener);
     }
 
     @Override

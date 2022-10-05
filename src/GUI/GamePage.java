@@ -4,6 +4,7 @@ import app.LiteChessGUI;
 import engine.*;
 import game.Clock;
 import game.Game;
+import game.board.Side;
 import jdk.jshell.spi.ExecutionControl;
 import player.EnginePlayer;
 import player.HumanPlayer;
@@ -14,7 +15,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.File;
+import java.io.*;
 import java.util.Stack;
 
 public class GamePage implements Page {
@@ -37,34 +38,11 @@ public class GamePage implements Page {
         createGUI();
         createMenuBar();
         //engineOut.listenToEngine(stockfish);
-        newGame("Human");
+        newGame(new Game(new HumanPlayer(), new HumanPlayer()));
     }
 
-    public void newGame(String string) {
+    public void newGame(Game game) {
         gameView.getGame().resign();
-        Game game;
-        if(string.equals("Human")) {
-             game = new Game(
-                    new HumanPlayer(gameView),
-                    new HumanPlayer(gameView),
-                    Clock.Format.Bullet
-            );
-        }
-        else {
-            try {
-                Engine engine = LiteChessGUI.engineManager.getInstance(string);
-                game = new Game(
-                        new EnginePlayer(engine),
-                        new EnginePlayer(engine),
-                        Clock.Format.Bullet
-                );
-                engineOut.listenToEngine(engine);
-            } catch (ExecutionControl.NotImplementedException e) {
-                throw new RuntimeException(e);
-            } catch (EngineVerificationFailure e) {
-                throw new RuntimeException(e);
-            }
-        }
         //stockfish.playingThis(game); // not necessary, engine player should set it if needed
         //tabs.setTitleAt(ENGINE_TAB_1, stockfish.getEngineName());
         gameView.setGame(game);
@@ -97,8 +75,8 @@ public class GamePage implements Page {
 
     @Override
     public JMenuBar createMenuBar() {
-        JMenu fileMenu = new JMenu("File");
-        menuBar.add(fileMenu);
+        /*JMenu fileMenu = new JMenu("File");
+        menuBar.add(fileMenu);*/
 
         // Game
         JMenu gameMenu = new JMenu("Game");
@@ -119,14 +97,84 @@ public class GamePage implements Page {
             );
             if(selected == null)
                 return;
-            this.newGame(selected);
+            Game game = null;
+            if(selected.equals("Human")) {
+                game = new Game(
+                        new HumanPlayer(),
+                        new HumanPlayer(),
+                        Clock.Format.Bullet
+                );
+            }
+            else {
+                try {
+                    game = new Game(
+                            new EnginePlayer(selected),
+                            new EnginePlayer(selected),
+                            Clock.Format.Bullet
+                    );
+                    if(game.getPlayer(Side.White) instanceof EnginePlayer ep)
+                        engineOut.listenToEngine(ep.getEngine());
+                } catch (ExecutionControl.NotImplementedException | EngineVerificationFailure ignored) {
+                    return;
+                }
+            }
+            this.newGame(game);
+        });
+        JMenuItem saveGame = new JMenuItem("Save");
+        saveGame.addActionListener((l) -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.addChoosableFileFilter(
+                    new FileNameExtensionFilter("Lite Chess Game", "lcg")
+            );
+            int temp = fileChooser.showSaveDialog(null);
+            if(temp == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                try (
+                        var fileOut = new ObjectOutputStream(new FileOutputStream(file))
+                ){
+                    fileOut.writeObject(gameView.getGame());
+                    JOptionPane.showMessageDialog(
+                            null, "Game saved successfully.",
+                            "Game Save", JOptionPane.INFORMATION_MESSAGE
+                    );
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            null, "Failed to save game.\n" + ex.getMessage(),
+                            "Game Save", JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        });
+        JMenuItem loadGame = new JMenuItem("Load");
+        loadGame.addActionListener((l) -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.addChoosableFileFilter(
+                    new FileNameExtensionFilter("Lite Chess Game", "lcg")
+            );
+            int temp = fileChooser.showOpenDialog(null);
+            if(temp == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                try (
+                        var fileIn = new ObjectInputStream(new FileInputStream(file))
+                ){
+                    Game game = (Game) fileIn.readObject();
+                    newGame(game);
+                    JOptionPane.showMessageDialog(
+                            null, "Game Load",
+                            "Game loaded successfully.", JOptionPane.INFORMATION_MESSAGE
+                    );
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            null, "Game Load",
+                            "Failed to save game.", JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
         });
         gameMenu.add(newGame);
+        gameMenu.add(saveGame);
+        gameMenu.add(loadGame);
         menuBar.add(gameMenu);
-
-        // Tournament
-        JMenu tournamentMenu = new JMenu("Tournament");
-        menuBar.add(tournamentMenu);
 
         // Engine
         JMenu engineMenu = new JMenu("Engines");

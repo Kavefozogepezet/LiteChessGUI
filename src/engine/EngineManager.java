@@ -3,12 +3,14 @@ package engine;
 import jdk.jshell.spi.ExecutionControl;
 
 import java.io.File;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 
-public class EngineManager {
+public class EngineManager implements Serializable {
     private final HashMap<String, EngineConfig> installedEngines = new HashMap<>();
-    private final HashMap<String, EngineWrapper> runningEngines = new HashMap<>();
+    private transient HashMap<String, EngineWrapper> runningEngines = new HashMap<>();
 
 
     public Collection<String> getInstalledEngines() {
@@ -113,5 +115,11 @@ public class EngineManager {
         public void stop() {
             engine.quit();
         }
+    }
+
+    @Serial
+    protected Object readResolve() {
+        runningEngines = new HashMap<>();
+        return this;
     }
 }

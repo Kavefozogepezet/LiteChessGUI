@@ -3,10 +3,12 @@ package game.movegen;
 import GUI.BoardView;
 import game.board.*;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-public class MoveGen {
+public class MoveGen implements Serializable {
     private static final int[][] directions = {
             { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 }
     };
@@ -15,14 +17,14 @@ public class MoveGen {
             { 1, 2 }, { 2, 1 }, { 2, -1 }, { 1, -2 }, { -1, -2 }, { -2, -1 }, { -2, 1 }, { -1, 2 }
     };
 
-    AbstractBoard board = null;
-    State state = null;
+    private transient AbstractBoard board = null;
+    private transient State state = null;
 
-    private final BitBoard
+    private transient BitBoard
             checkBoard = new BitBoard(),
             attackBoard = new BitBoard(),
             uniPinBoard = new BitBoard();
-    private final BitBoard[] pinBoards = new BitBoard[8];
+    private transient BitBoard[] pinBoards = new BitBoard[8];
 
     private boolean check, doublecheck;
 
@@ -414,5 +416,16 @@ public class MoveGen {
                 }
             }
         }
+    }
+
+    @Serial
+    protected Object readResolve() {
+        checkBoard = new BitBoard();
+        attackBoard = new BitBoard();
+        uniPinBoard = new BitBoard();
+        pinBoards = new BitBoard[8];
+        for(int i = 0; i < pinBoards.length; i++)
+            pinBoards[i] = new BitBoard();
+        return this;
     }
 }

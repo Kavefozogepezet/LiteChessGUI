@@ -34,10 +34,8 @@ public class GameView implements GUICreator {
     }
 
     public GameView() {
-        setGame(new Game(
-                new HumanPlayer(this),
-                new HumanPlayer(this)
-        ));
+        HumanPlayer h1 = new HumanPlayer(), h2 = new HumanPlayer();
+        setGame(new Game(h1, h2));
         createGUI();
     }
 
@@ -50,9 +48,16 @@ public class GameView implements GUICreator {
     }
 
     public void setGame(Game game) {
-        if(this.game != null)
+        if(this.game != null) {
             this.game.removeListener(gameListener);
+            this.game.resign();
+        }
         clearHighlights();
+
+        if(game.getPlayer(Side.White) instanceof HumanPlayer whiteHuman)
+            whiteHuman.setGameView(this);
+        if(game.getPlayer(Side.Black) instanceof HumanPlayer blackHuman)
+            blackHuman.setGameView(this);
 
         this.game = game;
         moveItr = game.getMoveList().listIterator(game.getMoveList().size());

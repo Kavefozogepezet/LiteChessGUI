@@ -14,9 +14,11 @@ import player.Player;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.LinkedList;
 
-public class Game {
+public class Game implements Serializable {
     public enum Result {
         WHITE_WINS, BLACK_WINS, DRAW;
 
@@ -36,7 +38,7 @@ public class Game {
     private final Board board = new Board();
     private State state = new State();
     private final Player[] players = new Player[2];
-    private final LinkedList<Move> moveList = new LinkedList<Move>();
+    private final LinkedList<Move> moveList = new LinkedList<>();
     private final MoveGen possibleMoves = new MoveGen();
 
     private Result result = null;
@@ -46,14 +48,14 @@ public class Game {
     private String startFen;
     private boolean defaultStart = false;
 
-    private final LinkedList<GameListener> gameListeners = new LinkedList<>();
+    private transient LinkedList<GameListener> gameListeners = new LinkedList<>();
 
     public Game(Player white, Player black, GameSetup setup) {
         setup.set(this);
         players[Side.White.ordinal()] = white;
         players[Side.Black.ordinal()] = black;
-        white.bind(this);
-        black.bind(this);
+        white.setGame(this);
+        black.setGame(this);
         possibleMoves.generate(board, state);
     }
 
@@ -201,5 +203,11 @@ public class Game {
     private void invokeMovePlayed(String SAN) {
         for(var listener : gameListeners)
             listener.movePlayed(moveList.getLast(), SAN);
+    }
+
+    @Serial
+    protected Object readResolve() {
+        gameListeners = new LinkedList<>();
+        return this;
     }
 }

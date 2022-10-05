@@ -11,12 +11,13 @@ import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class BoardView extends AbstractBoard implements GUICreator {
     private final SquareButton[][] squares = new SquareButton[BOARD_SIZE][BOARD_SIZE];
-    private final EventListenerList sqListeners = new EventListenerList();
+    private final LinkedList<SquareListener> sqListeners = new LinkedList<>();
     private final JPanel GUIRoot = new JPanel();
 
     private Timer quietTimer = null;
@@ -48,11 +49,11 @@ public class BoardView extends AbstractBoard implements GUICreator {
     }
 
     public void addSquareListener(SquareListener listener) {
-        sqListeners.add(SquareListener.class, listener);
+        sqListeners.add(listener);
     }
 
     public void removeSquareListener(SquareListener listener) {
-        sqListeners.remove(SquareListener.class, listener);
+        sqListeners.remove(listener);
     }
 
     @Override
@@ -249,14 +250,12 @@ public class BoardView extends AbstractBoard implements GUICreator {
             @Override
             public void mousePressed(MouseEvent e) {
                 pressed = true;
-                var listeners = sqListeners.getListeners(SquareListener.class);
-                for(var listener : listeners)
+                for(var listener : sqListeners)
                     listener.squarePressed(mySquare, e);
             }
             @Override
             public void mouseReleased(MouseEvent e) {
-                var listeners = sqListeners.getListeners(SquareListener.class);
-                for(var listener : listeners) {
+                for(var listener : sqListeners) {
                     listener.squareReleased(mySquare, e);
                     if(pressed)
                         listener.squareClicked(mySquare, e);

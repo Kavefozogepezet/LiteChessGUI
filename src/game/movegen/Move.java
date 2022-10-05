@@ -2,7 +2,9 @@ package game.movegen;
 
 import game.board.*;
 
-public class Move {
+import java.io.Serializable;
+
+public class Move implements Serializable {
     // Flags
     public static final int DOUBLE_PUSH = 0b00000001;
     public static final int EN_PASSANT =  0b00000010;

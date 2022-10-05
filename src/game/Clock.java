@@ -5,9 +5,10 @@ import game.board.Side;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 
-public class Clock {
-    public static class Format {
+public class Clock implements Serializable {
+    public static class Format implements Serializable {
         public static final int MINUTE = 60;
         public static final int HOUR = MINUTE * 60;
 
@@ -52,7 +53,7 @@ public class Clock {
     private final int[] used = new int[2]; // time used since last move
     private Side clockState = Side.White;
     public final Format format;
-    private Timer timer = new Timer(100, new ActionListener() {
+    private final Timer timer = new Timer(100, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             reduceTime();

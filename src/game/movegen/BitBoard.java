@@ -2,7 +2,9 @@ package game.movegen;
 
 import game.board.Square;
 
-public class BitBoard {
+import java.io.Serializable;
+
+public class BitBoard implements Serializable {
     long bits;
 
     BitBoard() {

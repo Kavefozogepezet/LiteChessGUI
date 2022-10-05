@@ -2,9 +2,10 @@ package game.board;
 
 import game.movegen.Move;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
-public class State {
+public class State implements Serializable {
     public static final int CASTLE_WK = 0b0001;
     public static final int CASTLE_WQ = 0b0010;
     public static final int CASTLE_BK = 0b0100;
@@ -21,7 +22,7 @@ public class State {
     private Side turn = Side.White;
     private int ply = 0;
 
-    private static class Record {
+    private static class Record implements Serializable {
         public int c;
         public Square ep;
         Record(int c, Square ep) {

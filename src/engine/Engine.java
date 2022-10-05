@@ -2,6 +2,8 @@ package engine;
 
 import game.Game;
 
+import java.io.Serializable;
+
 public interface Engine extends Runnable {
     void verify() throws EngineVerificationFailure;
     void isReady(); // waits until engine is ready

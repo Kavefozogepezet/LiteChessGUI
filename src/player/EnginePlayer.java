@@ -1,19 +1,25 @@
 package player;
 
+import app.LiteChessGUI;
 import engine.*;
 import game.Game;
 import game.board.Square;
 import game.movegen.Move;
+import jdk.jshell.spi.ExecutionControl;
 
 import javax.swing.*;
+import java.io.Serial;
+import java.io.Serializable;
 
-public class EnginePlayer implements Player {
+public class EnginePlayer implements Player, Serializable {
     private Game game = null;
-    private final Engine engine;
+    private transient Engine engine;
+    private final String engineName;
     private boolean myTurn = false;
 
-    public EnginePlayer(Engine engine) {
-        this.engine = engine;
+    public EnginePlayer(String engineName) throws ExecutionControl.NotImplementedException, EngineVerificationFailure {
+        this.engineName = engineName;
+        this.engine = LiteChessGUI.engineManager.getInstance(engineName);
         engine.addListener(new MoveListener());
     }
 
@@ -53,14 +59,21 @@ public class EnginePlayer implements Player {
     }
 
     @Override
-    public void bind(Game game) {
-        if(this.game == null)
-            this.game = game;
+    public void setGame(Game game) {
+        this.game = game;
+        if(myTurn) {
+            myTurn = false;
+            cancelTurn();
+        }
     }
 
     @Override
     public String getName() {
         return engine.getEngineName();
+    }
+
+    public Engine getEngine() {
+        return engine;
     }
 
     private class MoveListener implements engine.EngineListener {
@@ -74,5 +87,19 @@ public class EnginePlayer implements Player {
 
         @Override
         public void info(SearchInfo info) {}
+    }
+
+    @Serial
+    protected Object readResolve() throws
+            ExecutionControl.NotImplementedException,
+            EngineVerificationFailure
+    {
+        engine = LiteChessGUI.engineManager.getInstance(engineName);
+        engine.stopSearch(); // stopping possible previous search
+        engine.isReady(); // if there was a previous search, we need to wait until it's finished
+        engine.addListener(new MoveListener());
+        if(myTurn)
+            engine.startSearch();
+        return this;
     }
 }

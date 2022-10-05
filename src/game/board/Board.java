@@ -1,6 +1,8 @@
 package game.board;
 
-public class Board extends AbstractBoard {
+import java.io.Serializable;
+
+public class Board extends AbstractBoard implements Serializable {
     private final Piece[][] squares = new Piece[BOARD_SIZE][BOARD_SIZE];
 
     @Override

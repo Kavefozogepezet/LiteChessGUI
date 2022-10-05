@@ -2,9 +2,10 @@ package game.board;
 
 import GUI.BoardView;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Square {
+public class Square implements Serializable {
     public static final Square
             a1 = new Square(0, 0), b1 = new Square(1, 0), c1 = new Square(2, 0), d1 = new Square(3, 0), e1 = new Square(4, 0), f1 = new Square(5, 0), g1 = new Square(6, 0), h1 = new Square(7, 0),
             a2 = new Square(0, 1), b2 = new Square(1, 1), c2 = new Square(2, 1), d2 = new Square(3, 1), e2 = new Square(4, 1), f2 = new Square(5, 1), g2 = new Square(6, 1), h2 = new Square(7, 1),

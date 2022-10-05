@@ -30,7 +30,7 @@ public class EngineConfig implements Serializable {
         return options.get(name);
     }
 
-    public static abstract class AbstractOption {
+    public static abstract class AbstractOption implements Serializable {
         public final String name;
 
         public AbstractOption(String name) {
@@ -46,7 +46,10 @@ public class EngineConfig implements Serializable {
         public abstract Component getOptionDisplay();
     }
 
-    public static class CheckOption extends EngineConfig.AbstractOption {
+    public static class CheckOption
+            extends EngineConfig.AbstractOption
+            implements Serializable
+    {
         public boolean value;
         public CheckOption(String name, boolean value) {
             super(name);
@@ -65,7 +68,10 @@ public class EngineConfig implements Serializable {
             return comp;
         }
     }
-    public static class SpinOption extends EngineConfig.AbstractOption {
+    public static class SpinOption
+            extends EngineConfig.AbstractOption
+            implements Serializable
+    {
         public final int min, max;
         private int value;
 
@@ -103,7 +109,10 @@ public class EngineConfig implements Serializable {
             this.value = MathExt.clamp(value, min, max);
         }
     }
-    public static class ComboOption extends EngineConfig.AbstractOption {
+    public static class ComboOption
+            extends EngineConfig.AbstractOption
+            implements Serializable
+    {
         public final ArrayList<String> options;
         private String value;
 
@@ -133,7 +142,10 @@ public class EngineConfig implements Serializable {
                 this.value = value;
         }
     }
-    public static class StringOption extends EngineConfig.AbstractOption {
+    public static class StringOption
+            extends EngineConfig.AbstractOption
+            implements Serializable
+    {
         public String value;
         public StringOption(String name, String value) {
             super(name);
@@ -152,7 +164,10 @@ public class EngineConfig implements Serializable {
             return field;
         }
     }
-    public static class ButtonOption extends EngineConfig.AbstractOption {
+    public static class ButtonOption
+            extends EngineConfig.AbstractOption
+            implements Serializable
+    {
         private boolean sendAtStart = false;
 
         public ButtonOption(String name) {
