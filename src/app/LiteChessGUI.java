@@ -4,16 +4,23 @@ import GUI.BoardStyle;
 import GUI.GamePage;
 import GUI.Page;
 import audio.AudioFX;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatPropertiesLaf;
+import com.formdev.flatlaf.FlatSystemProperties;
 import engine.*;
 import com.formdev.flatlaf.FlatDarkLaf;
 import game.Game;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.*;
 
 public class LiteChessGUI {
@@ -42,6 +49,10 @@ public class LiteChessGUI {
                 saveSettings();
             }
         });
+
+        try {
+            window.setIconImage(ImageIO.read(new File("lite_chess_gui.png")));
+        } catch (IOException ignore) {}
 
         loadPage(new GamePage());
 

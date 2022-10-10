@@ -21,7 +21,7 @@ public class FEN implements GameSetup {
         Board board = game.getBoard();
 
         int emptySquares = 0;
-        for(int rank = Board.BOARD_SIZE - 1; rank >= 0; rank++) {
+        for(int rank = Board.BOARD_SIZE - 1; rank >= 0; rank--) {
             for(int file = 0; file < Board.BOARD_SIZE; file++) {
                 Piece piece = board.getPiece(file, rank);;
 
@@ -38,8 +38,10 @@ public class FEN implements GameSetup {
                 fenBuilder.append(piece.toString());
             }
 
-            if(emptySquares != 0)
+            if(emptySquares != 0) {
                 fenBuilder.append(emptySquares);
+                emptySquares = 0;
+            }
 
             if(rank != 0)
                 fenBuilder.append('/');
@@ -89,11 +91,19 @@ public class FEN implements GameSetup {
         int ply = Integer.parseInt(sections[5]) - 1;
 
         game.setState(new State(turn, castleRights, epTarget, ply));
-        game.setStartFen(fen);
     }
 
     @Override
     public String toString() {
         return fen;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof FEN other)
+            return fen.equals(other.fen);
+        if(obj instanceof String fenStr)
+            return fen.equals(fenStr);
+        return false;
     }
 }

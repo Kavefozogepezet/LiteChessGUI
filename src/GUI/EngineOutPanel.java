@@ -78,6 +78,9 @@ public class EngineOutPanel implements GUICreator {
         }
 
         @Override
+        public void anyCom(boolean isInput, String line) {}
+
+        @Override
         public void bestmove(String s) {
             setToClear = true;
         }

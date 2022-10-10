@@ -2,15 +2,16 @@ package engine;
 
 import jdk.jshell.spi.ExecutionControl;
 
-import java.io.File;
-import java.io.Serial;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Collection;
 import java.util.HashMap;
 
 public class EngineManager implements Serializable {
+    private static final File logFile = new File("enginecom.log");
+
     private final HashMap<String, EngineConfig> installedEngines = new HashMap<>();
     private transient HashMap<String, EngineWrapper> runningEngines = new HashMap<>();
+    private boolean logEngineCom = false;
 
 
     public Collection<String> getInstalledEngines() {
@@ -50,10 +51,6 @@ public class EngineManager implements Serializable {
         return engine;
     }
 
-    public EngineConfig getConfig(String name) {
-        return installedEngines.get(name);
-    }
-
     public void releaseInstance(Engine engine) {
         EngineWrapper wrapper = runningEngines.get(engine.getEngineName());
         wrapper.releaseEngine();
@@ -61,6 +58,14 @@ public class EngineManager implements Serializable {
             runningEngines.remove(engine.getEngineName());
             wrapper.stop();
         }
+    }
+
+    public EngineConfig getConfig(String name) {
+        return installedEngines.get(name);
+    }
+
+    public void setLogging(boolean log) {
+        logEngineCom = log;
     }
 
     private Engine startEngine(String name) throws
@@ -74,6 +79,27 @@ public class EngineManager implements Serializable {
         Engine engine = makeEngine(config);
         startEngineThread(engine);
         EngineWrapper wrapper = new EngineWrapper(engine);
+
+        engine.addListener(new EngineListener() {
+            @Override
+            public void bestmove(String s) {}
+
+            @Override
+            public void info(SearchInfo info) {}
+
+            @Override
+            public void anyCom(boolean isInput, String line) {
+                String sender = isInput ? "[GUI->" + engine.getEngineName() + "]: " : "[" + engine.getEngineName() + "]: ";
+                try (
+                        var fileOut = new FileWriter("engine.log", true)
+                ){
+                    fileOut.write(sender + line);
+                    fileOut.write('\n');
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
 
         runningEngines.put(name, wrapper);
         return wrapper.getEngine();

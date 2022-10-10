@@ -12,12 +12,12 @@ public class Clock implements Serializable {
         public static final int MINUTE = 60;
         public static final int HOUR = MINUTE * 60;
 
-        public static final Format FIDE_Blitz = new Format(3 * MINUTE, 2, IncType.FISCHER);
-        public static final Format FIDE_Rapid = new Format(15 * MINUTE, 10, IncType.FISCHER);
-        public static final Format Classical = new Format(30 * MINUTE);
-        public static final Format Rapid = new Format(10 * MINUTE);
-        public static final Format Blitz = new Format(5 * MINUTE);
-        public static final Format Bullet = new Format(MINUTE);
+        public static final Format FIDE_Blitz = new Format(3 * MINUTE, 2, IncType.FISCHER, "FIDE Blitz (3|2)");
+        public static final Format FIDE_Rapid = new Format(15 * MINUTE, 10, IncType.FISCHER, "FIDE Rapid (15|10)");
+        public static final Format Classical = new Format(30 * MINUTE, "Classical (30 min)");
+        public static final Format Rapid = new Format(10 * MINUTE, "Rapid (10 min)");
+        public static final Format Blitz = new Format(5 * MINUTE, "Blitz (5 min)");
+        public static final Format Bullet = new Format(MINUTE, "Bullet (1 min)");
 
         public enum IncType {
             NONE, DELAY, BRONSTEIN, FISCHER
@@ -27,25 +27,28 @@ public class Clock implements Serializable {
                 time = new int[2],
                 inc = new int[2];
         public final IncType type;
+        private final String name;
 
-        public Format(int wtime,int winc,int btime,int binc, IncType type) {
+        public Format(int wtime,int winc,int btime,int binc, IncType type, String name) {
             this.time[Side.White.ordinal()] = wtime * 10;
             this.inc[Side.White.ordinal()] = winc * 10;
             this.time[Side.Black.ordinal()] = btime * 10;
             this.inc[Side.Black.ordinal()] = binc * 10;
             this.type = type;
+            this.name = name;
         }
 
-        public Format(int wtime, int btime) {
-            this(wtime, 0, btime, 0, IncType.NONE);
+        public Format(int time, int inc, IncType type, String name) {
+            this(time, inc, time, inc, type, name);
         }
 
-        public Format(int time, int inc, IncType type) {
-            this(time, inc, time, inc, type);
+        public Format(int time, String name) {
+            this(time, 0, time, 0, IncType.NONE, name);
         }
 
-        public Format(int time) {
-            this(time, 0, time, 0, IncType.NONE);
+        @Override
+        public String toString() {
+            return name;
         }
     }
 

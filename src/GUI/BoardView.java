@@ -59,6 +59,11 @@ public class BoardView extends AbstractBoard implements GUICreator {
     @Override
     public void play(Move move) {
         super.play(move);
+
+        clearAllHighlight();
+        setSqHighlight(move.from, SqInfoHL.Moved);
+        setSqHighlight(move.to, SqInfoHL.Arrived);
+
         if(move.isCapture())
             AudioFX.play(AudioFX.Name.CAPTURE);
         else
@@ -68,6 +73,11 @@ public class BoardView extends AbstractBoard implements GUICreator {
     @Override
     public void unplay(Move move) {
         super.unplay(move);
+
+        clearAllHighlight();
+        setSqHighlight(move.from, SqInfoHL.Moved);
+        setSqHighlight(move.to, SqInfoHL.Arrived);
+
         if(move.isCapture())
             AudioFX.play(AudioFX.Name.CAPTURE);
         else
@@ -101,6 +111,16 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
     public void setSqHighlight(Square square, SqMoveHL hl) {
         squares[square.rank][square.file].setMoveHL(hl);
+    }
+
+    public void clearAllHighlight() {
+        for(int rank = 0; rank < BOARD_SIZE; rank++) {
+            for(int file = 0; file < BOARD_SIZE; file++) {
+                Square sq = new Square(file, rank);
+                setSqHighlight(sq, SqInfoHL.None);
+                setSqHighlight(sq, SqMoveHL.None);
+            }
+        }
     }
 
     private JLabel createCoordPanel(int value, boolean file) {

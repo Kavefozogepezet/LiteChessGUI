@@ -5,9 +5,12 @@ import engine.*;
 import game.Clock;
 import game.Game;
 import game.board.Side;
+import game.setup.FEN;
+import game.setup.PGN;
 import jdk.jshell.spi.ExecutionControl;
 import player.EnginePlayer;
 import player.HumanPlayer;
+import player.Player;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,38 +18,58 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.io.*;
 import java.util.Stack;
 
 public class GamePage implements Page {
-    //public static final Engine stockfish = null;
+    private static final int MOVES_TAB = 0;
     private static final int ENGINE_TAB_1 = 1;
     private static final int ENGINE_TAB_2 = 2;
 
-    JSplitPane GUIRoot;
-    JMenuBar menuBar = new JMenuBar();
+    private JSplitPane GUIRoot;
+    private final JMenuBar menuBar = new JMenuBar();
 
-    GameView gameView = new GameView();
+    private final GameView gameView = new GameView();
 
-    JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
-    MoveListPanel moveList = new MoveListPanel();
-    EngineOutPanel engineOut = new EngineOutPanel();
+    private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+    private final MoveListPanel moveList = new MoveListPanel();
+    private final EngineOutPanel[] engineOutputs = {
+            new EngineOutPanel(), new EngineOutPanel()
+    };
 
     //TEMP
 
     public GamePage() {
         createGUI();
         createMenuBar();
-        //engineOut.listenToEngine(stockfish);
-        newGame(new Game(new HumanPlayer(), new HumanPlayer()));
+        Game defaultGame = new Game();
+        defaultGame.setPlayer(Side.White, new HumanPlayer());
+        defaultGame.setPlayer(Side.Black, new HumanPlayer());
+        newGame(defaultGame);
     }
 
     public void newGame(Game game) {
-        gameView.getGame().resign();
-        //stockfish.playingThis(game); // not necessary, engine player should set it if needed
-        //tabs.setTitleAt(ENGINE_TAB_1, stockfish.getEngineName());
         gameView.setGame(game);
         moveList.followGame(game);
+
+        for(int tabIdx = tabs.getTabCount() - 1; tabIdx > MOVES_TAB; tabIdx-- )
+            tabs.remove(tabIdx);
+
+        Engine engine1 = null;
+        if(game.getPlayer(Side.White) instanceof EnginePlayer ep) {
+            var engineOut = engineOutputs[Side.White.ordinal()];
+            engine1 = ep.getEngine();
+            engineOut.listenToEngine(engine1);
+            tabs.add(engine1.getEngineName(), engineOut.getRootComponent());
+        }
+        if(game.getPlayer(Side.Black) instanceof EnginePlayer ep) {
+            var engineOut = engineOutputs[Side.Black.ordinal()];
+            if(ep.getEngine() != engine1) {
+                engineOut.listenToEngine(ep.getEngine());
+                tabs.add(ep.getEngine().getEngineName(), engineOut.getRootComponent());
+            }
+        }
 
         game.startGame();
     }
@@ -59,7 +82,6 @@ public class GamePage implements Page {
                 tabs
         );
         tabs.addTab("Moves", moveList.getRootComponent());
-        tabs.addTab("Engine", engineOut.getRootComponent());
         return GUIRoot;
     }
 
@@ -75,50 +97,31 @@ public class GamePage implements Page {
 
     @Override
     public JMenuBar createMenuBar() {
-        /*JMenu fileMenu = new JMenu("File");
-        menuBar.add(fileMenu);*/
-
         // Game
         JMenu gameMenu = new JMenu("Game");
         JMenuItem newGame = new JMenuItem("New");
         newGame.addActionListener((e) -> {
-            Object[] choices = LiteChessGUI.engineManager.getInstalledEngines().toArray();
-            Object[] withHuman = new Object[choices.length + 1];
-            System.arraycopy(choices, 0, withHuman, 0, choices.length);
-            withHuman[withHuman.length - 1] = "Human";
-            String selected = (String)JOptionPane.showInputDialog(
-                    LiteChessGUI.getWindow(),
-                    "Select a player",
-                    "New Game",
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    withHuman,
-                    withHuman[0]
-            );
-            if(selected == null)
-                return;
-            Game game = null;
-            if(selected.equals("Human")) {
-                game = new Game(
-                        new HumanPlayer(),
-                        new HumanPlayer(),
-                        Clock.Format.Bullet
-                );
-            }
-            else {
+            NewGameDialog dialog = new NewGameDialog();
+            if(dialog.show() == JOptionPane.OK_OPTION) {
+                Game game = null;
                 try {
-                    game = new Game(
-                            new EnginePlayer(selected),
-                            new EnginePlayer(selected),
-                            Clock.Format.Bullet
+                    Player
+                            p1 = dialog.createPlayer(Side.White),
+                            p2 = dialog.createPlayer(Side.Black);
+                    Clock.Format timeControl = dialog.getTimeControl();
+                    game = dialog.useTimeControl()
+                            ? new Game(timeControl)
+                            : new Game();
+                    game.setPlayer(Side.White, p1);
+                    game.setPlayer(Side.Black, p2);
+                    this.newGame(game);
+                } catch (ExecutionControl.NotImplementedException | EngineVerificationFailure ex) {
+                    JOptionPane.showMessageDialog(
+                            null, "Error while creating game:\n" + ex.getMessage(),
+                            "New Game", JOptionPane.INFORMATION_MESSAGE
                     );
-                    if(game.getPlayer(Side.White) instanceof EnginePlayer ep)
-                        engineOut.listenToEngine(ep.getEngine());
-                } catch (ExecutionControl.NotImplementedException | EngineVerificationFailure ignored) {
-                    return;
                 }
             }
-            this.newGame(game);
         });
         JMenuItem saveGame = new JMenuItem("Save");
         saveGame.addActionListener((l) -> {
@@ -128,6 +131,7 @@ public class GamePage implements Page {
             );
             int temp = fileChooser.showSaveDialog(null);
             if(temp == JFileChooser.APPROVE_OPTION) {
+                String msg;
                 File file = fileChooser.getSelectedFile();
                 try (
                         var fileOut = new ObjectOutputStream(new FileOutputStream(file))
@@ -154,26 +158,40 @@ public class GamePage implements Page {
             int temp = fileChooser.showOpenDialog(null);
             if(temp == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
+                String msg = "Game loaded successfully.";
+                int msgtype = JOptionPane.INFORMATION_MESSAGE;
                 try (
                         var fileIn = new ObjectInputStream(new FileInputStream(file))
                 ){
                     Game game = (Game) fileIn.readObject();
                     newGame(game);
-                    JOptionPane.showMessageDialog(
-                            null, "Game Load",
-                            "Game loaded successfully.", JOptionPane.INFORMATION_MESSAGE
-                    );
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(
-                            null, "Game Load",
-                            "Failed to save game.", JOptionPane.ERROR_MESSAGE
-                    );
+                    msg = "Failed to load game.\n" + ex.getMessage();
+                    msgtype = JOptionPane.ERROR_MESSAGE;
                 }
+                JOptionPane.showMessageDialog(null, msg, "Game Load", msgtype);
             }
+        });
+        JMenuItem copyPGN = new JMenuItem("Copy PGN");
+        copyPGN.addActionListener((l) -> {
+            PGN pgn = new PGN(gameView.getGame());
+            var pgnStr = new StringSelection(pgn.toString());
+            Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(pgnStr, pgnStr);
+        });
+        JMenuItem copyFEN = new JMenuItem("Copy FEN");
+        copyFEN.addActionListener((l) -> {
+            FEN fen = new FEN(gameView.getGame());
+            var fenStr = new StringSelection(fen.toString());
+            Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(fenStr, fenStr);
         });
         gameMenu.add(newGame);
         gameMenu.add(saveGame);
         gameMenu.add(loadGame);
+        gameMenu.add(new JSeparator());
+        gameMenu.add(copyPGN);
+        gameMenu.add(copyFEN);
         menuBar.add(gameMenu);
 
         // Engine

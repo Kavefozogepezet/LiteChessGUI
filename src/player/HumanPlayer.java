@@ -15,10 +15,19 @@ public class HumanPlayer implements Player, Serializable {
     private transient GameView gameView = null;
     private transient SquareListener myListener = null;
 
+    private final String name;
     private Game game = null;
-    private boolean myTurn = false;
+    private transient boolean myTurn = false;
     private transient LinkedList<Move> selMoves = null;
     private transient Square sel = null;
+
+    public HumanPlayer(String name) {
+        this.name = name;
+    }
+
+    public HumanPlayer() {
+        this("Human");
+    }
 
     private void clearHighlights() {
         if(gameView == null)
@@ -60,6 +69,9 @@ public class HumanPlayer implements Player, Serializable {
         this.game = game;
     }
 
+    @Override
+    public void gameEnd() {}
+
     public void setGameView(GameView view) {
         if(gameView != null)
             gameView.getBoardView().removeSquareListener(myListener);
@@ -68,6 +80,9 @@ public class HumanPlayer implements Player, Serializable {
         myListener = new SquareListener() {
             @Override
             public void squareClicked(Square sq, MouseEvent e) {
+                if(!gameView.isFollowingGame())
+                    return;
+
                 if(!(e.getButton() == MouseEvent.BUTTON1 && myTurn))
                     return;
 
@@ -109,6 +124,6 @@ public class HumanPlayer implements Player, Serializable {
 
     @Override
     public String getName() {
-        return "Human";
+        return name;
     }
 }

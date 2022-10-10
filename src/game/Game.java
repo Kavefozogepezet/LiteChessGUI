@@ -37,30 +37,27 @@ public class Game implements Serializable {
     private Clock clock = null;
     private final Board board = new Board();
     private State state = new State();
-    private final Player[] players = new Player[2];
-    private final LinkedList<Move> moveList = new LinkedList<>();
+    private final LinkedList<MoveData> moveList = new LinkedList<>();
     private final MoveGen possibleMoves = new MoveGen();
 
     private Result result = null;
     private Termination termination = null;
-    private boolean started = false;
 
-    private String startFen;
+    private FEN startFen;
+    private int startPly;
     private boolean defaultStart = false;
 
+    private transient boolean started = false;
+    private Player[] players = new Player[2];
     private transient LinkedList<GameListener> gameListeners = new LinkedList<>();
 
-    public Game(Player white, Player black, GameSetup setup) {
+    public Game(GameSetup setup) {
         setup.set(this);
-        players[Side.White.ordinal()] = white;
-        players[Side.Black.ordinal()] = black;
-        white.setGame(this);
-        black.setGame(this);
         possibleMoves.generate(board, state);
     }
 
-    public Game(Player white, Player black, GameSetup setup, Clock.Format format) {
-        this(white, black, setup);
+    public Game(GameSetup setup, Clock.Format format) {
+        this(setup);
         clock = new Clock(format, state.getTurn());
         clock.getTimer().addActionListener(new ActionListener() {
             @Override
@@ -74,12 +71,12 @@ public class Game implements Serializable {
         });
     }
 
-    public Game(Player white, Player black, Clock.Format format) {
-        this(white, black, new StartPos(), format);
+    public Game(Clock.Format format) {
+        this(new StartPos(), format);
     }
 
-    public Game(Player white, Player black) {
-        this(white, black, new StartPos());
+    public Game() {
+        this(new StartPos());
     }
 
     public void addListener(GameListener listener) {
@@ -94,34 +91,50 @@ public class Game implements Serializable {
         if(started)
             return;
 
+        if(players[0] == null || players[1] == null)
+            throw new RuntimeException("Not all players set.");
+
+        startPly = state.getPly();
+        startFen = new FEN(this);
+        defaultStart = startFen.equals(FEN.STARTPOS_FEN);
+
         players[state.getTurn().ordinal()].myTurn();
         started = true;
+    }
+
+    public Player getPlayer(Side side) {
+        return players[side.ordinal()];
+    }
+    public void setPlayer(Side side, Player player) {
+        if(started)
+            throw new RuntimeException("Cannot set a player after the game has been started");
+        players[side.ordinal()] = player;
+        player.setGame(this);
     }
 
     public State getState() {
         return state;
     }
     public void setState(State state) {
+        if(started)
+            throw new RuntimeException("Cannot set game state after the game has been started");
         this.state = state;
     }
 
-    public String getStartFen() {
+    public FEN getStartFen() {
         return startFen;
     }
-    public void setStartFen(String fen) {
-        startFen = fen;
-        if(fen.equals(FEN.STARTPOS_FEN))
-            defaultStart = true;
+    public int getStartPly() {
+        return startPly;
     }
-
     public Board getBoard() {
         return board;
     }
-    public Player getPlayer(Side side) {
-        return players[side.ordinal()];
-    }
-    public LinkedList<Move> getMoveList() {
+    public LinkedList<MoveData> getMoveList() {
         return moveList;
+    }
+    public MoveData getMoveData(int ply) {
+        return moveList.get(ply - startPly);
     }
     public MoveGen getPossibleMoves() {
         return possibleMoves;
@@ -160,7 +173,6 @@ public class Game implements Serializable {
         if(usesTimeControl())
             clock.movePlayed();
 
-        moveList.add(move);
         possibleMoves.generate(board, state);
 
         if(possibleMoves.isEmpty()) {
@@ -171,19 +183,28 @@ public class Game implements Serializable {
                         ? Result.WHITE_WINS
                         : Result.BLACK_WINS;
             }
-            invokeMovePlayed(san.toString());
+            invokeMovePlayed(move, san.toString());
             invokeGameEnd();
         } else {
             if(possibleMoves.isCheck())
                 san.check();
-            invokeMovePlayed(san.toString());
+            invokeMovePlayed(move, san.toString());
             players[state.getTurn().ordinal()].myTurn();
         }
     }
 
     public void resign() {
+        if(hasEnded())
+            return;
         players[state.getTurn().ordinal()].cancelTurn();
         endGame(Result.lost(state.getTurn()), Termination.FORFEIT);
+    }
+
+    public void draw() {
+        if(hasEnded())
+            return;
+        players[state.getTurn().ordinal()].cancelTurn();
+        endGame(Result.DRAW, Termination.NORMAL);
     }
 
     private void endGame(Result result, Termination termination) {
@@ -200,14 +221,36 @@ public class Game implements Serializable {
         for(var listener : gameListeners)
             listener.gameEnded(result, termination);
     }
-    private void invokeMovePlayed(String SAN) {
+    private void invokeMovePlayed(Move move, String SAN) {
+        moveList.add(new MoveData(move, SAN));
         for(var listener : gameListeners)
-            listener.movePlayed(moveList.getLast(), SAN);
+            listener.movePlayed(move, SAN);
     }
 
     @Serial
     protected Object readResolve() {
         gameListeners = new LinkedList<>();
+        players = new Player[2];
         return this;
+    }
+
+    public static class MoveData implements Serializable {
+        public final Move move;
+        public final String SAN;
+        public String comment;
+
+        MoveData(Move move, String SAN, String comment) {
+            this.move = move;
+            this.SAN = SAN;
+            this.comment = comment;
+        }
+
+        MoveData(Move move, String SAN) {
+            this(move, SAN, null);
+        }
+
+        public boolean hasComment() {
+            return comment != null && !comment.equals("");
+        }
     }
 }

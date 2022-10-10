@@ -68,6 +68,11 @@ public class EnginePlayer implements Player, Serializable {
     }
 
     @Override
+    public void gameEnd() {
+        LiteChessGUI.engineManager.releaseInstance(engine);
+    }
+
+    @Override
     public String getName() {
         return engine.getEngineName();
     }
@@ -87,6 +92,9 @@ public class EnginePlayer implements Player, Serializable {
 
         @Override
         public void info(SearchInfo info) {}
+
+        @Override
+        public void anyCom(boolean isInput, String line) {}
     }
 
     @Serial
@@ -95,11 +103,11 @@ public class EnginePlayer implements Player, Serializable {
             EngineVerificationFailure
     {
         engine = LiteChessGUI.engineManager.getInstance(engineName);
-        engine.stopSearch(); // stopping possible previous search
-        engine.isReady(); // if there was a previous search, we need to wait until it's finished
+        if(engine.isSearching()) {
+            engine.stopSearch();
+            engine.isReady(); // wait until search is truly stopped
+        }
         engine.addListener(new MoveListener());
-        if(myTurn)
-            engine.startSearch();
         return this;
     }
 }

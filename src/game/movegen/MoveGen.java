@@ -223,7 +223,6 @@ public class MoveGen implements Serializable {
         if(move.captured != null && move.captured.side == move.moving.side)
             return;
 
-        // TODO check testing
         int pDir = state.getTurn() == Side.White ? -1 : 1;
         Square
                 epPawn = state.getEpTarget().shift(0, pDir),

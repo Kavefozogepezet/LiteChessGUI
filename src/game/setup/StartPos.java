@@ -36,6 +36,5 @@ public class StartPos implements GameSetup {
         }
 
         game.setState(new State(Side.White, State.CASTLE_ALL, Square.invalid, 0));
-        game.setStartFen(FEN.STARTPOS_FEN);
     }
 }

@@ -4,6 +4,7 @@ import game.Game;
 
 import java.io.Serializable;
 
+// TODO isSearching
 public interface Engine extends Runnable {
     void verify() throws EngineVerificationFailure;
     void isReady(); // waits until engine is ready
@@ -11,6 +12,7 @@ public interface Engine extends Runnable {
 
     void startSearch();
     void stopSearch();
+    boolean isSearching();
 
     void addListener(EngineListener listener);
     void removeListener(EngineListener listener);
