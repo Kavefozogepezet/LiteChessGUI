@@ -13,14 +13,14 @@ public class ServerThread extends NetworkThread {
     public void run() {
         try (
                 var s = new DatagramSocket(DATAGRAM_PORT);
-                var ss = new ServerSocket(0)
+                var ss = new ServerSocket()
         ){
             boolean connectionFound = false;
             do {
                 DatagramPacket packet = receiveDatagram(s, 1024);
 
                 String otherId = new String(packet.getData(), 0, packet.getLength());
-                if (otherId.equals(getId())) {
+                if (otherId.equals(getPassword())) {
                     ByteBuffer buffer = ByteBuffer.allocate(8).putInt(ACCEPT_PACKET).putInt(ss.getLocalPort());
                     sendDatagram(s, buffer.array(), packet.getAddress(), packet.getPort());
                     setSocket(ss.accept());

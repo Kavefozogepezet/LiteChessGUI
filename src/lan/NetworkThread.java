@@ -1,14 +1,12 @@
 package lan;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.*;
 import java.util.function.Consumer;
 
-public abstract class NetworkThread implements Runnable {
+public abstract class NetworkThread extends Thread {
     public static final int DATAGRAM_PORT = 8888;
     public static final int ACCEPT_PACKET = 176394482;
     public static final String BROADCAST_IP = "255.255.255.255";
@@ -34,31 +32,32 @@ public abstract class NetworkThread implements Runnable {
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private final String id;
+    private final String password;
 
     private Consumer<Object> receiverCallback = null;
     private Consumer<ConnectionEvent> connectionCallback = null;
 
-    public NetworkThread(String id) {
-        this.id = id;
+    public NetworkThread(String password) {
+        this.password = password;
+        setDaemon(true);
     }
 
-    public String getId() {
-        return id;
+    public String getPassword() {
+        return password;
     }
 
     public boolean isConnected() {
         return socket.isConnected();
     }
 
-    public void close() {
+    public synchronized void close() {
         try {
             socket.close();
             connectionCallback.accept(ConnectionEvent.SHUT_DOWN);
         } catch (IOException ignore) {}
     }
 
-    public void setConnectionCallback(Consumer<ConnectionEvent> connectionCallback) {
+    public synchronized void setConnectionCallback(Consumer<ConnectionEvent> connectionCallback) {
         this.connectionCallback = connectionCallback;
     }
 
@@ -67,7 +66,7 @@ public abstract class NetworkThread implements Runnable {
             connectionCallback.accept(e);
     }
 
-    public void setReceiverCallback(Consumer<Object> receiverCallback) {
+    public synchronized void setReceiverCallback(Consumer<Object> receiverCallback) {
         this.receiverCallback = receiverCallback;
     }
 
@@ -76,7 +75,7 @@ public abstract class NetworkThread implements Runnable {
             receiverCallback.accept(obj);
     }
 
-    protected void setSocket(Socket socket) throws IOException {
+    protected synchronized void setSocket(Socket socket) throws IOException {
         this.socket = socket;
         out = new ObjectOutputStream(socket.getOutputStream());
         out.flush();

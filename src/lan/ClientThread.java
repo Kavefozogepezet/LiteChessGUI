@@ -19,7 +19,7 @@ public class ClientThread extends NetworkThread {
                 var s = new DatagramSocket()
         ) {
             s.setBroadcast(true);
-            broadcastDatagram(s, getId().getBytes());
+            broadcastDatagram(s, getPassword().getBytes());
             var packet = receiveDatagram(s, 1024);
 
             ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
@@ -30,7 +30,8 @@ public class ClientThread extends NetworkThread {
                 return;
 
             address = packet.getAddress();
-        } catch (IOException e) {
+            Thread.sleep(1000);
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
 

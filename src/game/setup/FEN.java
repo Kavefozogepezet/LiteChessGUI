@@ -4,7 +4,9 @@ import GUI.BoardView;
 import game.Game;
 import game.board.*;
 
-public class FEN implements GameSetup {
+import java.io.Serializable;
+
+public class FEN implements GameSetup, Serializable {
     public static final String STARTPOS_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private static final String[] castling = {
             "-", "K", "Q", "KQ", "k", "Kk", "Qk", "KQk", "q", "Kq", "Qq", "KQq", "kq", "Kkq", "Qkq", "KQkq"
