@@ -18,10 +18,6 @@ public class DebugMain {
             case "y" -> server();
             case "n" -> client();
         }
-
-        Scanner scn = new Scanner(System.in);
-        while (t.isConnected())
-            t.write(scn.nextLine());
     }
 
     private static void server() {

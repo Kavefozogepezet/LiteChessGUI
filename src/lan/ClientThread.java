@@ -30,7 +30,8 @@ public class ClientThread extends NetworkThread {
                 return;
 
             address = packet.getAddress();
-        } catch (IOException e) {
+            Thread.sleep(1000);
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
 

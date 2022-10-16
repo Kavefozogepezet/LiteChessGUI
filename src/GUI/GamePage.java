@@ -138,7 +138,10 @@ public class GamePage implements Page {
                 try (
                         var fileOut = new ObjectOutputStream(new FileOutputStream(file))
                 ){
-                    fileOut.writeObject(gameView.getGame());
+                    Game game = gameView.getGame();
+                    fileOut.writeObject(game);
+                    fileOut.writeObject(game.getPlayer(Side.White));
+                    fileOut.writeObject(game.getPlayer(Side.Black));
                     JOptionPane.showMessageDialog(
                             null, "Game saved successfully.",
                             "Game Save", JOptionPane.INFORMATION_MESSAGE
@@ -166,6 +169,11 @@ public class GamePage implements Page {
                         var fileIn = new ObjectInputStream(new FileInputStream(file))
                 ){
                     Game game = (Game) fileIn.readObject();
+                    Player
+                            white = (Player) fileIn.readObject(),
+                            black = (Player) fileIn.readObject();
+                    game.setPlayer(Side.White, white);
+                    game.setPlayer(Side.Black, black);
                     newGame(game);
                 } catch (Exception ex) {
                     msg = "Failed to load game.\n" + ex.getMessage();
