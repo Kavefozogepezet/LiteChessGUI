@@ -3,6 +3,7 @@ package player;
 import GUI.BoardView;
 import GUI.GameView;
 import game.Game;
+import game.board.Side;
 import game.event.SquareListener;
 import game.movegen.Move;
 import game.board.Square;
@@ -16,7 +17,7 @@ public class HumanPlayer implements Player, Serializable {
     private transient SquareListener myListener = null;
 
     private final String name;
-    private Game game = null;
+    private transient Game game = null;
     private transient boolean myTurn = false;
     private transient LinkedList<Move> selMoves = null;
     private transient Square sel = null;
@@ -62,10 +63,9 @@ public class HumanPlayer implements Player, Serializable {
     }
 
     @Override
-    public void setGame(Game game) {
-        clearHighlights();
-        sel = null;
-        selMoves = null;
+    public void setGame(Game game, Side side) {
+        if(this.game != null)
+            throw new RuntimeException("The game can be set only once.");
         this.game = game;
     }
 

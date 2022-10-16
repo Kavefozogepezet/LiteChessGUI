@@ -42,6 +42,7 @@ public class PGN implements GameSetup {
             switch (game.getTermination()) {
                 case NORMAL, FORFEIT -> terminationStr = "normal";
                 case TIME_FORFEIT -> terminationStr = "time forfeit";
+                case ABANDONED -> terminationStr = "abandoned";
             }
         }
         pgnb.append(tagLineMaker("Termination", terminationStr));

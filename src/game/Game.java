@@ -31,10 +31,12 @@ public class Game implements Serializable {
     }
 
     public enum Termination {
-        NORMAL, FORFEIT, TIME_FORFEIT
+        NORMAL, FORFEIT, TIME_FORFEIT, ABANDONED
     }
 
     private Clock clock = null;
+    private final ActionListener clockListener = new ClockListener();
+
     private final Board board = new Board();
     private State state = new State();
     private final LinkedList<MoveData> moveList = new LinkedList<>();
@@ -48,7 +50,7 @@ public class Game implements Serializable {
     private boolean defaultStart = false;
 
     private transient boolean started = false;
-    private Player[] players = new Player[2];
+    private transient Player[] players = new Player[2];
     private transient LinkedList<GameListener> gameListeners = new LinkedList<>();
 
     public Game(GameSetup setup) {
@@ -58,17 +60,7 @@ public class Game implements Serializable {
 
     public Game(GameSetup setup, Clock.Format format) {
         this(setup);
-        clock = new Clock(format, state.getTurn());
-        clock.getTimer().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                invokeTimeTick();
-                if(clock.isTimeout()) {
-                    players[state.getTurn().ordinal()].cancelTurn();
-                    endGame(Result.lost(state.getTurn()), Termination.TIME_FORFEIT);
-                }
-            }
-        });
+        setClock(new Clock(format, state.getTurn()));
     }
 
     public Game(Clock.Format format) {
@@ -109,7 +101,7 @@ public class Game implements Serializable {
         if(started)
             throw new RuntimeException("Cannot set a player after the game has been started");
         players[side.ordinal()] = player;
-        player.setGame(this);
+        player.setGame(this, side);
     }
 
     public State getState() {
@@ -148,6 +140,25 @@ public class Game implements Serializable {
     }
     public Termination getTermination() {
         return termination;
+    }
+
+    public void setClock(Clock clock) {
+        if(hasEnded())
+            return;
+
+        if(clock != null)
+            clock.getTimer().removeActionListener(clockListener);
+
+        this.clock = clock;
+        clock.getTimer().addActionListener(clockListener);
+        clockCallback();
+    }
+
+    public boolean isValidMove(Move move) {
+        for(Move validMove : possibleMoves.from(move.from))
+            if(validMove.equals(move))
+                return true;
+        return false;
     }
 
     public boolean hasEnded() {
@@ -207,24 +218,29 @@ public class Game implements Serializable {
         endGame(Result.DRAW, Termination.NORMAL);
     }
 
-    private void endGame(Result result, Termination termination) {
+    public void endGame(Result result, Termination termination) {
         this.result = result;
         this.termination = termination;
         invokeGameEnd();
     }
 
     private void invokeTimeTick() {
-        for(var listener : gameListeners)
-            listener.timeTick(clock);
+        gameListeners.forEach((c) -> { c.timeTick(clock); });
     }
     private void invokeGameEnd() {
-        for(var listener : gameListeners)
-            listener.gameEnded(result, termination);
+        gameListeners.forEach((c) -> { c.gameEnded(result, termination); });
     }
     private void invokeMovePlayed(Move move, String SAN) {
         moveList.add(new MoveData(move, SAN));
-        for(var listener : gameListeners)
-            listener.movePlayed(move, SAN);
+        gameListeners.forEach((c) -> { c.movePlayed(move, SAN); });
+    }
+
+    private void clockCallback() {
+        invokeTimeTick();
+        if(clock.isTimeout()) {
+            players[state.getTurn().ordinal()].cancelTurn();
+            endGame(Result.lost(state.getTurn()), Termination.TIME_FORFEIT);
+        }
     }
 
     @Serial
@@ -251,6 +267,13 @@ public class Game implements Serializable {
 
         public boolean hasComment() {
             return comment != null && !comment.equals("");
+        }
+    }
+
+    public class ClockListener implements ActionListener, Serializable {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            clockCallback();
         }
     }
 }

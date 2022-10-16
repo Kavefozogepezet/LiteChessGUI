@@ -2,69 +2,58 @@ package lan;
 
 import org.jetbrains.annotations.ApiStatus;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.*;
 import java.util.function.Consumer;
 
-public abstract class NetworkThread implements Runnable {
+public abstract class NetworkThread extends Thread {
+    public enum State {
+        NOT_CONNECTED, CONNECTED, FAILED, DISCONNECTED, SHUT_DOWN
+    }
+
     public static final int DATAGRAM_PORT = 8888;
     public static final int ACCEPT_PACKET = 176394482;
     public static final String BROADCAST_IP = "255.255.255.255";
 
-    public static void createConnection(NetworkThread run) {
-        Thread thread = new Thread(run);
-        //thread.setDaemon(true);
-        try {
-            synchronized (run) {
-                thread.start();
-                run.wait(); // wait until connection
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public enum ConnectionEvent {
-        CONNECTED, DISCONNECTED, COULD_NOT_CONNECT, SHUT_DOWN
-    }
-
+    private State state = State.NOT_CONNECTED;
     private int tcp_port;
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    private final String id;
+    private final String password;
 
     private Consumer<Object> receiverCallback = null;
-    private Consumer<ConnectionEvent> connectionCallback = null;
+    private Consumer<State> connectionCallback = null;
 
-    public NetworkThread(String id) {
-        this.id = id;
+    public NetworkThread(String password) {
+        this.password = password;
     }
 
-    public String getId() {
-        return id;
+    public String getPassword() {
+        return password;
     }
 
     public boolean isConnected() {
-        return socket.isConnected();
+        return socket != null && socket.isConnected();
     }
 
     public void close() {
         try {
             socket.close();
-            connectionCallback.accept(ConnectionEvent.SHUT_DOWN);
+            connectionCallback.accept(State.SHUT_DOWN);
         } catch (IOException ignore) {}
     }
 
-    public void setConnectionCallback(Consumer<ConnectionEvent> connectionCallback) {
+    public void setConnectionCallback(Consumer<State> connectionCallback) {
         this.connectionCallback = connectionCallback;
     }
 
-    protected void invokeConnectionCallback(ConnectionEvent e) {
+    protected void invokeConnectionCallback() {
         if(connectionCallback != null)
-            connectionCallback.accept(e);
+            connectionCallback.accept(state);
     }
 
     public void setReceiverCallback(Consumer<Object> receiverCallback) {
@@ -76,6 +65,13 @@ public abstract class NetworkThread implements Runnable {
             receiverCallback.accept(obj);
     }
 
+    protected void setState(State state) {
+        if(this.state != state) {
+            this.state = state;
+            invokeConnectionCallback();
+        }
+    }
+
     protected void setSocket(Socket socket) throws IOException {
         this.socket = socket;
         out = new ObjectOutputStream(socket.getOutputStream());
@@ -84,20 +80,32 @@ public abstract class NetworkThread implements Runnable {
         synchronized (this) {
             notifyAll(); // notify threads waiting for connection
         }
+        setState(State.CONNECTED);
     }
 
     protected Socket getSocket() {
         return socket;
     }
 
-    protected void beginReading() throws IOException, ClassNotFoundException {
-        while (socket.isConnected())
-            invokeReceiverCallback(readEcho());
+    protected void beginReading() {
+        while (socket.isConnected()) {
+            try {
+                invokeReceiverCallback(readEcho());
+            } catch (EOFException e) {
+                if(state == State.CONNECTED)
+                    state = State.SHUT_DOWN;
+                invokeConnectionCallback();
+            } catch (IOException | ClassNotFoundException e) {
+                if(state == State.CONNECTED)
+                    state = State.DISCONNECTED;
+                invokeConnectionCallback();
+            }
+        }
     }
 
-    protected Object readEcho() throws IOException, ClassNotFoundException {
+    private Object readEcho() throws IOException, ClassNotFoundException {
         Object obj = in.readObject();
-        System.out.println("echo read:" + obj);
+        System.out.println("echo read: " + obj);
         return obj;
     }
 

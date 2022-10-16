@@ -3,6 +3,7 @@ package game.movegen;
 import game.board.*;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Move implements Serializable {
     // Flags
@@ -82,5 +83,15 @@ public class Move implements Serializable {
         if(isPromotion())
             moveStr += getPromotionPiece().type.toString();
         return moveStr;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Move other) {
+            return from.equals(other.from) && to.equals(other.to)
+                    && moving.equals(other.moving) && Objects.equals(captured, other.captured)
+                    && flags == other.flags;
+        }
+        return false;
     }
 }

@@ -8,19 +8,21 @@ import game.board.Side;
 import game.setup.FEN;
 import game.setup.PGN;
 import jdk.jshell.spi.ExecutionControl;
+import lan.ClientThread;
+import lan.ServerThread;
 import player.EnginePlayer;
 import player.HumanPlayer;
+import player.LANPlayer;
 import player.Player;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.DefaultTableColumnModel;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.Stack;
 
 public class GamePage implements Page {
     private static final int MOVES_TAB = 0;
@@ -172,6 +174,8 @@ public class GamePage implements Page {
                 JOptionPane.showMessageDialog(null, msg, "Game Load", msgtype);
             }
         });
+        JMenuItem joinLAN = new JMenuItem("Join LAN game");
+        joinLAN.addActionListener(new GameJoiner());
         JMenuItem copyPGN = new JMenuItem("Copy PGN");
         copyPGN.addActionListener((l) -> {
             PGN pgn = new PGN(gameView.getGame());
@@ -189,6 +193,8 @@ public class GamePage implements Page {
         gameMenu.add(newGame);
         gameMenu.add(saveGame);
         gameMenu.add(loadGame);
+        gameMenu.add(new JSeparator());
+        gameMenu.add(joinLAN);
         gameMenu.add(new JSeparator());
         gameMenu.add(copyPGN);
         gameMenu.add(copyFEN);
@@ -257,5 +263,58 @@ public class GamePage implements Page {
     @Override
     public JMenuBar getMenuBar() {
         return menuBar;
+    }
+
+    private class GameJoiner implements ActionListener {
+        private Game game = null;
+        private LANPlayer player = null;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("CLIENT");
+
+            String reply = JOptionPane.showInputDialog((Component) null, (Object)"Your name:", "Joining", JOptionPane.PLAIN_MESSAGE);
+            if(reply == null || "".equals(reply))
+                return;
+
+            JOptionPane pane = new JOptionPane(
+                    "Trying to connect to a game on your local network.",
+                    JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new String[] { "Cancel" }, "Cancel");
+            JDialog dialog = pane.createDialog("Joining");
+
+            ClientThread thread = new ClientThread(""); // TODO password
+            thread.setConnectionCallback((s) -> {
+                SwingUtilities.invokeLater(dialog::dispose);
+            });
+
+            player = new LANPlayer(thread, false);
+            thread.start();
+
+            dialog.add(pane);
+            dialog.pack();
+            dialog.show();
+
+            thread.setConnectionCallback(null);
+            dialog.dispose();
+
+            if(!thread.isConnected()) {
+                thread.interrupt();
+                JOptionPane.showMessageDialog(null, "Failed to connect.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                player.initGame(reply);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(null, "Failed to communicate.\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            Game game = player.getGame();
+            gameView.setGame(game);
+            game.startGame();
+        }
     }
 }

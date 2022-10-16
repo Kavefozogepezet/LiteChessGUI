@@ -26,13 +26,13 @@ public class DebugMain {
 
     private static void server() {
         ServerThread s = new ServerThread("test");
-        NetworkThread.createConnection(s);
+        s.start();
         t = s;
     }
 
     private static void client() {
         ClientThread c = new ClientThread("test");
-        NetworkThread.createConnection(c);
+        c.start();
         t = c;
     }
 }

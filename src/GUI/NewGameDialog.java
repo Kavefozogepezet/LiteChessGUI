@@ -5,13 +5,15 @@ import engine.EngineVerificationFailure;
 import game.Clock;
 import game.board.Side;
 import jdk.jshell.spi.ExecutionControl;
+import lan.ServerThread;
 import player.EnginePlayer;
 import player.HumanPlayer;
+import player.LANPlayer;
 import player.Player;
 
 import javax.swing.*;
 import java.awt.*;
-import java.text.Format;
+import java.io.IOException;
 import java.text.NumberFormat;
 
 public class NewGameDialog {
@@ -69,6 +71,8 @@ public class NewGameDialog {
         String selected = (String)players[side.ordinal()].getSelectedItem();
         if(LiteChessGUI.engineManager.getInstalledEngines().contains(selected))
             return new EnginePlayer(selected);
+        else if("Player over LAN".equals(selected))
+            return createLANPlayer(side);
         else
             return new HumanPlayer(selected);
     }
@@ -100,9 +104,44 @@ public class NewGameDialog {
 
     private String[] getPlayerOptions() {
         String[] engines = LiteChessGUI.engineManager.getInstalledEngines().toArray(new String[0]);
-        String[] options = new String[engines.length + 1];
+        String[] options = new String[engines.length + 2];
         System.arraycopy(engines, 0, options, 1, engines.length);
         options[0] = "Human";
+        options[1] = "Player over LAN";
         return options;
+    }
+
+    private LANPlayer createLANPlayer(Side side) {
+        JOptionPane pane = new JOptionPane(
+                "Waiting for a player to connect...",
+                JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new String[] { "Cancel"}, "Cancel" );
+
+        JDialog dialog = pane.createDialog("Creating game");
+
+        ServerThread thread = new ServerThread(""); // TODO password
+        thread.setConnectionCallback((s) -> {
+            SwingUtilities.invokeLater(dialog::dispose);
+        });
+
+        LANPlayer player = new LANPlayer(thread, true);
+        thread.start();
+
+        dialog.pack();
+        dialog.show();
+
+        thread.setConnectionCallback(null);
+        dialog.dispose();
+
+        String input = (String)pane.getInputValue();
+        if(JOptionPane.UNINITIALIZED_VALUE.equals(input)) {
+            if(!thread.isConnected()) {
+                thread.interrupt();
+                throw new RuntimeException("Failed to connect");
+            }
+        } else {
+            throw new RuntimeException("Connection cancelled");
+        }
+
+        return player;
     }
 }

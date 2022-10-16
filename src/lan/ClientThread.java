@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
 
 public class ClientThread extends NetworkThread {
 
-    public ClientThread(String id) {
-        super(id);
+    public ClientThread(String password) {
+        super(password);
     }
 
     @Override
@@ -19,7 +19,7 @@ public class ClientThread extends NetworkThread {
                 var s = new DatagramSocket()
         ) {
             s.setBroadcast(true);
-            broadcastDatagram(s, getId().getBytes());
+            broadcastDatagram(s, getPassword().getBytes());
             var packet = receiveDatagram(s, 1024);
 
             ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
@@ -40,7 +40,7 @@ public class ClientThread extends NetworkThread {
             setSocket(socket);
             System.out.println("successful pairing with:\n\tipv4:\t" + address.getHostAddress() + "\n\tport:\t" + port);
             beginReading();
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

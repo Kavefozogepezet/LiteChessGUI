@@ -3,6 +3,7 @@ package player;
 import app.LiteChessGUI;
 import engine.*;
 import game.Game;
+import game.board.Side;
 import game.board.Square;
 import game.movegen.Move;
 import jdk.jshell.spi.ExecutionControl;
@@ -12,10 +13,12 @@ import java.io.Serial;
 import java.io.Serializable;
 
 public class EnginePlayer implements Player, Serializable {
-    private Game game = null;
+    private transient Game game = null;
+    private Side mySide = null;
     private transient Engine engine;
+    private transient MoveListener listener = new MoveListener();
     private final String engineName;
-    private boolean myTurn = false;
+    private transient boolean myTurn = false;
 
     public EnginePlayer(String engineName) throws ExecutionControl.NotImplementedException, EngineVerificationFailure {
         this.engineName = engineName;
@@ -59,12 +62,11 @@ public class EnginePlayer implements Player, Serializable {
     }
 
     @Override
-    public void setGame(Game game) {
+    public void setGame(Game game, Side side) {
+        if(this.game != null)
+            throw new RuntimeException("The game can be set only once.");
         this.game = game;
-        if(myTurn) {
-            myTurn = false;
-            cancelTurn();
-        }
+        mySide = side;
     }
 
     @Override
@@ -107,7 +109,8 @@ public class EnginePlayer implements Player, Serializable {
             engine.stopSearch();
             engine.isReady(); // wait until search is truly stopped
         }
-        engine.addListener(new MoveListener());
+        listener = new MoveListener();
+        engine.addListener(listener);
         return this;
     }
 }

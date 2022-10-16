@@ -1,12 +1,14 @@
 package lan;
 
+import game.board.State;
+
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 
 public class ServerThread extends NetworkThread {
-    public ServerThread(String id) {
-        super(id);
+    public ServerThread(String password) {
+        super(password);
     }
 
     @Override
@@ -19,8 +21,8 @@ public class ServerThread extends NetworkThread {
             do {
                 DatagramPacket packet = receiveDatagram(s, 1024);
 
-                String otherId = new String(packet.getData(), 0, packet.getLength());
-                if (otherId.equals(getId())) {
+                String otherPw = new String(packet.getData(), 0, packet.getLength());
+                if (otherPw.equals(getPassword())) {
                     ByteBuffer buffer = ByteBuffer.allocate(8).putInt(ACCEPT_PACKET).putInt(ss.getLocalPort());
                     sendDatagram(s, buffer.array(), packet.getAddress(), packet.getPort());
                     setSocket(ss.accept());
@@ -28,14 +30,14 @@ public class ServerThread extends NetworkThread {
                 }
             } while(!connectionFound);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            setState(State.FAILED);
         }
 
         try (Socket socket = getSocket()) {
             System.out.println("successful pairing with:\n\tipv4:\t" + socket.getInetAddress() + "\n\tport:\t" + socket.getPort());
             beginReading();
-        } catch (IOException | ClassNotFoundException e) {
-            invokeConnectionCallback(ConnectionEvent.DISCONNECTED);
+        } catch (IOException e) {
+            setState(State.DISCONNECTED);
         }
     }
 }
