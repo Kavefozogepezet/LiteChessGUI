@@ -1,7 +1,5 @@
 package lan;
 
-import org.jetbrains.annotations.ApiStatus;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -125,11 +123,13 @@ public abstract class NetworkThread extends Thread {
         DatagramPacket packet = new DatagramPacket(
                 bytes, bytes.length, address, port);
         s.send(packet);
+        System.out.println("Sent Datagram: " + packet);
     }
 
     protected DatagramPacket receiveDatagram(DatagramSocket s, int maxSize) throws IOException {
         DatagramPacket packet = new DatagramPacket(new byte[maxSize], maxSize);
         s.receive(packet);
+        System.out.println("Recieved Datagram: " + packet);
         return packet;
     }
 }
