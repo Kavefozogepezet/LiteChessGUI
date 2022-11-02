@@ -1,4 +1,13 @@
 {
+    "board": {
+        "light": [],
+        "dark": [],
+        "check": [],
+        "piece left": [],
+        "piece arrived": [],
+        "selected": [],
+        "destination": []
+    },
     "white": {
         "king": "pieces/white_king",
         "queen": "pieces/white_queen",
@@ -14,11 +23,5 @@
         "knight": "pieces/black_knight",
         "rook": "pieces/black_rook",
         "pawn": "pieces/black_pawn"
-    },
-    "board": {
-        "show coordinates": true,
-        "white": [],
-        "black": [],
-        "frame": []
     }
 }
