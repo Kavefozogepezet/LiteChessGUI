@@ -1,5 +1,6 @@
 package me.lcgui.game.movegen;
 
+import me.lcgui.game.Game;
 import me.lcgui.game.board.*;
 
 import java.io.Serial;
@@ -16,6 +17,7 @@ public class MoveGen implements Serializable {
             { 1, 2 }, { 2, 1 }, { 2, -1 }, { 1, -2 }, { -1, -2 }, { -2, -1 }, { -2, 1 }, { -1, 2 }
     };
 
+    private Game game;
     private transient AbstractBoard board = null;
     private transient State state = null;
 
@@ -30,14 +32,15 @@ public class MoveGen implements Serializable {
     HashMap<Square, LinkedList<Move>> moves = new HashMap<>();
     HashMap<Square, LinkedList<Move>> movesToSq = new HashMap<>();
 
-    public MoveGen() {
+    public MoveGen(Game game) {
+        this.game = game;
         for(int i = 0; i < pinBoards.length; i++)
             pinBoards[i] = new BitBoard();
     }
 
-    public void generate(AbstractBoard board, State state) {
-        this.board = board;
-        this.state = state;
+    public void generate() {
+        this.board = this.game.getBoard();
+        this.state = this.game.getState();
         moves.clear();
         movesToSq.clear();
         fillInfo();

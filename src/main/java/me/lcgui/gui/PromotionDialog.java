@@ -3,6 +3,7 @@ package me.lcgui.gui;
 import me.lcgui.app.LiteChessGUI;
 import me.lcgui.game.board.PieceType;
 import me.lcgui.game.board.Side;
+import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
 
 import javax.swing.*;
@@ -17,9 +18,9 @@ public class PromotionDialog {
     private final Point position;
     private PieceType selected = null;
 
-    public PromotionDialog(Collection<Move> moves, Dimension dimension, Point position) {
+    public PromotionDialog(Collection<Move> moves, Square from, Square to, Dimension dimension, Point position) {
         for(var move : moves)
-            if(move.isPromotion())
+            if(move.isPromotion() && move.from.equals(from) && move.to.equals(to))
                 promotions.add(move);
 
         this.side = promotions.getFirst().moving.side;

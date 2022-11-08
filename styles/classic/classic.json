@@ -1,0 +1,27 @@
+{
+    "board": {
+        "light": [222, 189, 144],
+        "dark": [189, 122, 67],
+        "check": [255, 0, 0, 128],
+        "piece left": [255, 179, 0, 128],
+        "piece arrived": [255, 179, 0, 128],
+        "selected": [0, 72, 17, 128],
+        "destination": [0, 255, 50, 128]
+    },
+    "white": {
+        "king": "pieces.white_king",
+        "queen": "pieces.white_queen",
+        "bishop": "pieces.white_bishop",
+        "knight": "pieces.white_knight",
+        "rook": "pieces.white_rook",
+        "pawn": "pieces.white_pawn"
+    },
+    "black": {
+        "king": "pieces.black_king",
+        "queen": "pieces.black_queen",
+        "bishop": "pieces.black_bishop",
+        "knight": "pieces.black_knight",
+        "rook": "pieces.black_rook",
+        "pawn": "pieces.black_pawn"
+    }
+}

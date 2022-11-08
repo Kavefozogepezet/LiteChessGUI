@@ -3,7 +3,6 @@ package me.lcgui.gui;
 import me.lcgui.audio.AudioFX;
 import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
-import me.lcgui.game.board.PieceType;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
@@ -21,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 import java.util.ListIterator;
-import java.util.function.Consumer;
 
 public class GameView implements GUICreator, MoveSupplier {
     private static final String SKIP_TO_START_SYMBOL = "\u23EE";
@@ -86,6 +84,10 @@ public class GameView implements GUICreator, MoveSupplier {
         playersBars[Side.Black.ordinal()].setPlayer(game.getPlayer(Side.Black).getName());
         playersBars[Side.White.ordinal()].setTime(game.getClock());
         playersBars[Side.Black.ordinal()].setTime(game.getClock());
+        if(game.hasEnded()) {
+            playersBars[Side.White.ordinal()].setResult(game.getResult(), game.getTermination());
+            playersBars[Side.Black.ordinal()].setResult(game.getResult(), game.getTermination());
+        }
         setButtonAvailability();
         GUIRoot.repaint();
     }
@@ -114,19 +116,20 @@ public class GameView implements GUICreator, MoveSupplier {
     }
 
     @Override
-    public void addMoveListener(Event.Listener<Consumable<Move>> consumer) {
-        moveListeners.addListener(consumer);
+    public void addMoveListener(Event.Listener<Consumable<Move>> listener) {
+        moveListeners.addListener(listener);
     }
 
     @Override
-    public void removeMoveListener(Event.Listener<Consumable<Move>> consumer) {
-        moveListeners.removeListener(consumer);
+    public void removeMoveListener(Event.Listener<Consumable<Move>> listener) {
+        moveListeners.removeListener(listener);
     }
 
     @Override
     public Component createGUI() {
         GUIRoot.removeAll();
         bigFont = GUIRoot.getFont().deriveFont(Font.BOLD, 24.0f);
+        boardView.createGUI();
 
         GUIRoot.setLayout(new BorderLayout());
         JPanel playerPanel = new JPanel();
@@ -344,14 +347,13 @@ public class GameView implements GUICreator, MoveSupplier {
         }
     }
 
-    // TODO promotion dialog box
     private class MoveInputHandler implements Event.Listener<Square> {
         private transient LinkedList<Move> selectedMoves = null;
         private transient Square selected = null;
 
         @Override
         public void invoked(Square sq) {
-            if(!isFollowingGame())
+            if(!isFollowingGame() || game.hasEnded())
                 return;
 
             Player p = game.getPlayer(game.getState().getTurn());
@@ -370,6 +372,8 @@ public class GameView implements GUICreator, MoveSupplier {
                         if(move.isPromotion()) {
                             var d = new PromotionDialog(
                                     selectedMoves,
+                                    move.from,
+                                    move.to,
                                     boardView.getSquareSize(),
                                     boardView.getSquareLocation(move.to));
                             d.show();
@@ -377,8 +381,6 @@ public class GameView implements GUICreator, MoveSupplier {
                         } else {
                             moveToPlay = move;
                         }
-                        selected = null;
-                        selectedMoves = null;
                         moveSelected = true;
                         moveListeners.invoke(Consumable.create(moveToPlay));
                         break;
@@ -388,6 +390,9 @@ public class GameView implements GUICreator, MoveSupplier {
             if (!moveSelected && boardView.getPiece(sq) != null) {
                 selected = sq;
                 selectedMoves = game.getPossibleMoves().from(sq);
+            }
+            else {
+                selectedMoves = null;
             }
             setHighlights();
         }

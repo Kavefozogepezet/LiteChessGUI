@@ -2,6 +2,7 @@ package me.lcgui.engine;
 
 import jdk.jshell.spi.ExecutionControl;
 import me.lcgui.app.LiteChessGUI;
+import me.lcgui.app.Settings;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 
@@ -9,14 +10,15 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 
 public class EngineManager implements Serializable {
+    public static final String ENGINE_LOG = "engine_log";
+
     private static final File logFile = new File("enginecom.log");
 
     private final HashMap<String, EngineConfig> installedEngines = new HashMap<>();
     private transient HashMap<String, EngineWrapper> runningEngines = new HashMap<>();
-    private boolean logEngineCom = false;
-
 
     public Collection<String> getInstalledEngines() {
         return installedEngines.keySet();
@@ -33,7 +35,7 @@ public class EngineManager implements Serializable {
 
         String name = engine.getEngineName();
         if(installedEngines.containsKey(name))
-            throw new IllegalArgumentException("This engine is already installed.");
+            throw new RuntimeException("This engine is already installed.");
 
         installedEngines.put(name, config);
         engine.quit();
@@ -59,7 +61,15 @@ public class EngineManager implements Serializable {
         return engine;
     }
 
-    public void releaseInstance(Engine engine) {
+    public Set<String> getRunningEngines() {
+        return installedEngines.keySet();
+    }
+
+    public EngineConfig getConfig(String name) {
+        return installedEngines.get(name);
+    }
+
+    private void releaseInstance(Engine engine) {
         EngineWrapper wrapper = runningEngines.get(engine.getEngineName());
         wrapper.releaseEngine();
         if(wrapper.shouldStop()) {
@@ -68,32 +78,17 @@ public class EngineManager implements Serializable {
         }
     }
 
-    public EngineConfig getConfig(String name) {
-        return installedEngines.get(name);
-    }
-
-    public void setLogging(boolean log) {
-        logEngineCom = log;
-    }
-
-    public boolean isLogging() {
-        return logEngineCom;
-    }
-
-    private Engine startEngine(String name) throws
-            ExecutionControl.NotImplementedException,
-            EngineVerificationFailure
-    {
+    private Engine startEngine(String name) throws EngineVerificationFailure {
         EngineConfig config = installedEngines.get(name);
         if(config == null)
             throw new IllegalArgumentException("There are no engines installed with this name: " + name);
 
         Engine engine = makeEngine(config);
-        startEngineThread(engine);
-        EngineWrapper wrapper = new EngineWrapper(engine);
-
         engine.getComEvent().addListener(new EngineComLogger(engine));
+        engine.getReleasedEvent().addListener(this::releaseInstance);
+        startEngineThread(engine);
 
+        EngineWrapper wrapper = new EngineWrapper(engine);
         runningEngines.put(name, wrapper);
         return wrapper.getEngine();
     }
@@ -105,7 +100,7 @@ public class EngineManager implements Serializable {
         engine.verify();
     }
 
-    private Engine makeEngine(EngineConfig config) throws ExecutionControl.NotImplementedException {
+    private Engine makeEngine(EngineConfig config) {
         var clazz = LiteChessGUI.protocols.get(config.protocol);
         if(clazz == null)
             throw new IllegalArgumentException("Protocol not implemented: " + config.protocol);
@@ -154,7 +149,7 @@ public class EngineManager implements Serializable {
 
         @Override
         public void invoked(ComData data) {
-            if(!logEngineCom)
+            if(!LiteChessGUI.settings.get(ENGINE_LOG, false))
                 return;
 
             String sender = data.isInput ? "[GUI->" + engine.getEngineName() + "]: " : "[" + engine.getEngineName() + "]: ";

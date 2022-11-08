@@ -46,7 +46,6 @@ public class LANPlayerFactory implements DrawableFactory<LANPlayer> {
         } else {
             throw new RuntimeException("Connection cancelled");
         }
-
         return player;
     }
 

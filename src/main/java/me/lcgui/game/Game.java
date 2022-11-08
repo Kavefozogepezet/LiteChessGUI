@@ -76,7 +76,7 @@ public class Game implements Serializable {
     private State state = new State();
     private final HashMap<String, Integer> prevPos = new HashMap<>();
     private final LinkedList<MoveData> moveList = new LinkedList<>();
-    private final MoveGen possibleMoves = new MoveGen();
+    private final MoveGen possibleMoves = new MoveGen(this);
 
     private ResultData result = null;
 
@@ -84,6 +84,7 @@ public class Game implements Serializable {
     private int startPly;
     private boolean defaultStart = false;
 
+    private boolean initialized = false;
     private transient boolean started = false;
     private transient Player[] players = new Player[2];
 
@@ -93,7 +94,7 @@ public class Game implements Serializable {
 
     public Game(GameSetup setup) {
         setup.set(this);
-        possibleMoves.generate(board, state);
+        possibleMoves.generate();
     }
 
     public Game(GameSetup setup, Clock.Format format) {
@@ -113,15 +114,18 @@ public class Game implements Serializable {
     }
 
     public void startGame() {
-        if(started)
+        if(started || hasEnded())
             return;
 
         if(players[0] == null || players[1] == null)
             throw new RuntimeException("Not all players set.");
 
-        startPly = state.getPly();
-        startFen = new FEN(this);
-        defaultStart = startFen.equals(FEN.STARTPOS_FEN);
+        if(!initialized) {
+            startPly = state.getPly();
+            startFen = new FEN(this);
+            defaultStart = startFen.equals(FEN.STARTPOS_FEN);
+            initialized = true;
+        }
 
         players[state.getTurn().ordinal()].myTurn();
         started = true;
@@ -214,7 +218,7 @@ public class Game implements Serializable {
         if(usesTimeControl())
             clock.movePlayed();
 
-        possibleMoves.generate(board, state);
+        possibleMoves.generate();
 
         if(possibleMoves.isCheck()) {
             if(possibleMoves.isEmpty())

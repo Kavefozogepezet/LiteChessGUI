@@ -2,6 +2,7 @@ package me.lcgui.gui.factory;
 
 import jdk.jshell.spi.ExecutionControl;
 import me.lcgui.app.LiteChessGUI;
+import me.lcgui.engine.Engine;
 import me.lcgui.engine.EngineVerificationFailure;
 import me.lcgui.gui.DrawableFactory;
 import me.lcgui.player.EnginePlayer;
@@ -23,7 +24,9 @@ public class EnginePlayerFactory implements DrawableFactory<EnginePlayer> {
             ExecutionControl.NotImplementedException,
             EngineVerificationFailure
     {
-        return new EnginePlayer((String) engineOptions.getSelectedItem());
+        String engineName = (String) engineOptions.getSelectedItem();
+        Engine engine = LiteChessGUI.engineManager.getInstance(engineName);
+        return new EnginePlayer(engine);
     }
 
     @Override

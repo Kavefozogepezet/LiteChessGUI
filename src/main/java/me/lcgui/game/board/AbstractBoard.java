@@ -49,7 +49,6 @@ public abstract class AbstractBoard {
         return kings[side.ordinal()];
     }
 
-    // TODO check detection
     public void play(Move move) {
         removePiece(move.from);
 
@@ -76,7 +75,6 @@ public abstract class AbstractBoard {
         updateChecks();
     }
 
-    // TODO check detection
     public void unplay(Move move) {
         removePiece(move.to);
         setPiece(move.from, move.moving);

@@ -6,7 +6,9 @@ import me.lcgui.engine.Engine;
 import me.lcgui.engine.EngineManager;
 import me.lcgui.engine.ProtocolImplementation;
 import me.lcgui.gui.BoardStyle;
+import me.lcgui.gui.BoardView;
 import me.lcgui.gui.LCGUIWindow;
+import me.lcgui.player.HumanPlayer;
 import me.lcgui.player.SelectablePlayer;
 import org.reflections.Reflections;
 
@@ -25,7 +27,14 @@ public class LiteChessGUI {
 
     public static final Map<String, Class<? extends Engine>> protocols = new HashMap<>();
 
-    public static Settings settings = new Settings();
+    public static Settings settings = Settings.withDefaults(
+            Settings.setting(EngineManager.ENGINE_LOG, false),
+            Settings.setting(HumanPlayer.AUTO_DRAW, false),
+            Settings.setting(BoardView.SHOW_COODDINATES, true),
+            Settings.setting(BoardView.SHOW_POSSIBLE_MOVES, true),
+            Settings.setting(BoardView.SHOW_SQUARE_INFO, true),
+            Settings.setting(BoardStyle.STYLE, BoardStyle.defaultStyle)
+    );
     public static EngineManager engineManager = new EngineManager();
     public static BoardStyle style = new BoardStyle();
 
@@ -37,10 +46,11 @@ public class LiteChessGUI {
         initProtocols();
 
         try {
-            UIManager.setLookAndFeel(new MetalLookAndFeel());
+            UIManager.setLookAndFeel(new FlatDarkLaf());
         } catch (UnsupportedLookAndFeelException e) {
             throw new RuntimeException(e);
         }
+        style.loadStyle(BoardStyle.defaultStyle);
 
         loadSettings();
 
@@ -58,16 +68,22 @@ public class LiteChessGUI {
     }
 
     private static void loadSettings() {
+        File settingsFile = new File("settings.ser");
+        if(!settingsFile.exists())
+            return;
+
         try(
                 var stream = new ObjectInputStream(
                         new FileInputStream(
-                                new File("settings.ser")))
+                                settingsFile))
         ) {
             settings = (Settings) stream.readObject();
             engineManager = (EngineManager) stream.readObject();
 
-            style.loadStyle(settings.styleName);
-        } catch (Exception ignore) {}
+            style.loadStyle(settings.get(BoardStyle.STYLE, BoardStyle.defaultStyle));
+        } catch (Exception ignore) {
+            throw new RuntimeException("Failed to load settings file");
+        }
     }
 
     private static void saveSettings() {

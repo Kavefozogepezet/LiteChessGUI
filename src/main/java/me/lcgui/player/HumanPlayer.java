@@ -1,9 +1,11 @@
 package me.lcgui.player;
 
 import me.lcgui.app.LiteChessGUI;
+import me.lcgui.app.Settings;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.movegen.Move;
+import me.lcgui.gui.LCGUIWindow;
 import me.lcgui.gui.MoveSupplier;
 import me.lcgui.gui.factory.HumanPlayerFactory;
 import me.lcgui.misc.Consumable;
@@ -12,13 +14,15 @@ import me.lcgui.misc.Event;
 import java.io.Serializable;
 
 @SelectablePlayer(name = "Human", factoryClass = HumanPlayerFactory.class, canUseGUI = true)
-public class HumanPlayer implements Player, Serializable {
-    private transient MoveSupplier supplier;
+public class HumanPlayer implements Player {
+    public static final String AUTO_DRAW = "auto_draw";
+
+    private MoveSupplier supplier;
 
     private final String name;
-    private transient Game game = null;
-    private transient Side mySide = null;
-    private transient boolean myTurn = false;
+    private Game game = null;
+    private Side mySide = null;
+    private boolean myTurn = false;
 
     public HumanPlayer(String name) {
         this.name = name;
@@ -67,7 +71,7 @@ public class HumanPlayer implements Player, Serializable {
     @Override
     public void handleDrawClaim() {
         boolean can = mySide == game.getState().getTurn() && game.canClaimDraw();
-        if(can && LiteChessGUI.settings.autoClaimDraw)
+        if(can && LiteChessGUI.settings.get(AUTO_DRAW, false))
             game.draw();
     }
 

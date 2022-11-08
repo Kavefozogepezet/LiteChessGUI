@@ -2,6 +2,7 @@ package me.lcgui.gui;
 
 import me.lcgui.engine.Engine;
 import me.lcgui.engine.SearchInfo;
+import me.lcgui.game.movegen.Move;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 
@@ -25,14 +26,14 @@ public class EngineOutPanel implements GUICreator {
 
     public void listenToEngine(Engine engine) {
         if(myEngine != null) {
-            myEngine.getBestEvent().removeListener(onBestEvent);
+            myEngine.removeMoveListener(onBestEvent);
             myEngine.getInfoEvent().removeListener(onInfoEvent);
         }
 
         tModel.setRowCount(0);
 
         myEngine = engine;
-        myEngine.getBestEvent().addListener(onBestEvent);
+        myEngine.addMoveListener(onBestEvent);
         myEngine.getInfoEvent().addListener(onInfoEvent);
     }
 
@@ -65,14 +66,16 @@ public class EngineOutPanel implements GUICreator {
     }
 
     private final Event.Listener<SearchInfo> onInfoEvent = (SearchInfo info) -> {
-        if(setToClear) {
-            tModel.setRowCount(0);
-            setToClear = false;
-        }
-        tModel.insertRow(0, info.array);
+        SwingUtilities.invokeLater(() -> {
+            if(setToClear) {
+                tModel.setRowCount(0);
+                setToClear = false;
+            }
+            tModel.insertRow(0, info.array);
+        });
     };
 
-    private final Event.Listener<Consumable<String>> onBestEvent = (Consumable<String> c) -> {
+    private final Event.Listener<Consumable<Move>> onBestEvent = (Consumable<Move> c) -> {
         setToClear = true;
     };
 }

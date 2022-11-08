@@ -4,6 +4,8 @@ import me.lcgui.engine.args.*;
 import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
+import me.lcgui.game.board.Square;
+import me.lcgui.game.movegen.Move;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 
@@ -24,9 +26,10 @@ public class UCIEngine implements Engine {
     private Game game;
     private String pvMove = null;
 
-    public final Event<Consumable<String>> bestEvent = new Event<>();
+    public final Event<Consumable<Move>> bestEvent = new Event<>();
     public final Event<SearchInfo> infoEvent = new Event<>();
     public final Event<ComData> comEvent = new Event<>();
+    public final Event<Engine> releasedEvent = new Event<>();
 
     private Scanner in;
     private PrintStream out;
@@ -45,7 +48,7 @@ public class UCIEngine implements Engine {
 
         try {
             synchronized (this) {
-                wait(10000);
+                wait(VERIFICATION_WINDOW_SIZE);
                 if(!running)
                     throw new EngineVerificationFailure(
                             "Engine not responded correctly, check that the it is installed with the correct protocol"
@@ -68,6 +71,11 @@ public class UCIEngine implements Engine {
     @Override
     public void quit() {
         writeToEngine("quit");
+    }
+
+    @Override
+    public void release() {
+        releasedEvent.invoke(this);
     }
 
     @Override
@@ -104,8 +112,13 @@ public class UCIEngine implements Engine {
     }
 
     @Override
-    public Event<Consumable<String>> getBestEvent() {
-        return bestEvent;
+    public void addMoveListener(Event.Listener<Consumable<Move>> listener) {
+        bestEvent.addListener(listener);
+    }
+
+    @Override
+    public void removeMoveListener(Event.Listener<Consumable<Move>> listener) {
+        bestEvent.removeListener(listener);
     }
 
     @Override
@@ -116,6 +129,11 @@ public class UCIEngine implements Engine {
     @Override
     public Event<ComData> getComEvent() {
         return comEvent;
+    }
+
+    @Override
+    public Event<Engine> getReleasedEvent() {
+        return releasedEvent;
     }
 
     @Override
@@ -162,7 +180,6 @@ public class UCIEngine implements Engine {
             in = new Scanner(input);
             out = new PrintStream(output, true, StandardCharsets.UTF_8);
 
-            running = true;
             writeToEngine("uci");
 
             String inputLine;
@@ -173,7 +190,7 @@ public class UCIEngine implements Engine {
                     name = line[2];
                 else if (initStart && line[0].equals("option")) {
                     var option = readOption(line);
-                    config.options.put(option.name, option);
+                    config.options.put(option.getName(), option);
                 }
             } while (!inputLine.equals("uciok"));
 
@@ -188,6 +205,8 @@ public class UCIEngine implements Engine {
                 this.notifyAll();
             }
 
+            // TODO set non default options
+
             while (in.hasNextLine()) {
                 String line = readFromEngine();
                 String[] strs = line.split(" ");
@@ -196,7 +215,8 @@ public class UCIEngine implements Engine {
                     case "info" -> processInfo(strs);
                     case "bestmove" -> {
                         pvMove = strs[1];
-                        bestEvent.invoke(Consumable.create(pvMove));
+                        Move best = convertMove(pvMove);
+                        bestEvent.invoke(Consumable.create(best));
                     }
                     case "readyok" -> {
                         synchronized (this) {
@@ -209,6 +229,18 @@ public class UCIEngine implements Engine {
         finally {
             engineProcess.destroy();
         }
+    }
+
+    private Move convertMove(String moveStr) {
+        Move move = null;
+        Square from = Square.parse(moveStr.substring(0, 2));
+        for (var possible : game.getPossibleMoves().from(from)) {
+            if (possible.toString().equals(moveStr)) {
+                move = possible;
+                break;
+            }
+        }
+        return move;
     }
 
     private void processInfo(String[] info) {
@@ -293,11 +325,11 @@ public class UCIEngine implements Engine {
         String name = nameBuilder.toString();
         AbstractArg<?> option = null;
         switch (type) {
-            case "check" -> option = new CheckArg(name, Boolean.parseBoolean(value));
-            case "spin" -> option = new SpinArg(name, min, max, Integer.parseInt(value));
-            case "combo" -> option = new ComboArg(name, value, options);
-            case "button" -> option = new ButtonArg(name);
-            case "string" -> option = new StringArg(name, value);
+            case "check" -> option = new Args.Check(name, Boolean.parseBoolean(value));
+            case "spin" -> option = new Args.Spin(name, min, max, Integer.parseInt(value));
+            case "combo" -> option = new Args.Combo(name, value, options);
+            case "button" -> option = new Args.Button(name);
+            case "string" -> option = new Args.Str(name, value);
         }
         return option;
     }

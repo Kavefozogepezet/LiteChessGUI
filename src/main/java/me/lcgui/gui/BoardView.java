@@ -1,9 +1,10 @@
 package me.lcgui.gui;
 
 import me.lcgui.app.LiteChessGUI;
+import me.lcgui.app.Settings;
 import me.lcgui.audio.AudioFX;
 import me.lcgui.game.board.*;
-import me.lcgui.misc.ColorUtil;
+import me.lcgui.misc.ColorExt;
 import me.lcgui.game.movegen.Move;
 import me.lcgui.misc.Event;
 
@@ -14,6 +15,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class BoardView extends AbstractBoard implements GUICreator {
+    public static final String SHOW_COODDINATES = "show_coordinates";
+    public static final String SHOW_POSSIBLE_MOVES = "show_possible_moves";
+    public static final String SHOW_SQUARE_INFO = "show_square_info";
+
     public final Event<Square> clickEvent = new Event<>();
     private final SquareButton[][] squares = new SquareButton[BOARD_SIZE][BOARD_SIZE];
     private final JPanel GUIRoot = new JPanel();
@@ -127,6 +132,13 @@ public class BoardView extends AbstractBoard implements GUICreator {
         }
     }
 
+    public void updateStyle() {
+        for(int rank = BOARD_SIZE - 1; rank >= 0; rank--)
+            for (int file = 0; file < BOARD_SIZE; file++)
+                squares[rank][file].setColor();
+        GUIRoot.repaint();
+    }
+
     private JLabel createCoordPanel(int value, boolean file) {
         String content = file ?
                 String.valueOf(Square.file2char(value)) :
@@ -143,7 +155,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
         GUIRoot.removeAll(); // if being recreated, remove previous GUI
         GUIRoot.setLayout(new GridBagLayout());
 
-        int gridOffset = LiteChessGUI.settings.showCoordinates ? 1 : 0;
+        int gridOffset = LiteChessGUI.settings.get(SHOW_COODDINATES, true) ? 1 : 0;
 
         GridBagConstraints cell = new GridBagConstraints();
         cell.weightx = 1.0f;
@@ -199,7 +211,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
         });
 
         // notation
-        if(LiteChessGUI.settings.showCoordinates) {
+        if(LiteChessGUI.settings.get(SHOW_COODDINATES, true)) {
             for (int i = 0; i < BOARD_SIZE; i++) {
                 coord.gridy = 0;
                 coord.gridx = i + 1;
@@ -264,7 +276,6 @@ public class BoardView extends AbstractBoard implements GUICreator {
     }
 
     class SquareButton extends JPanel {
-        private final Color baseColor;
         private final Square mySquare;
         public Piece piece = null;
 
@@ -273,11 +284,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
         public SquareButton(Square sq) {
             mySquare = sq;
-            baseColor = sq.isLight() ?
-                    LiteChessGUI.style.baseLight :
-                    LiteChessGUI.style.baseDark;
-
-            setBackground(baseColor);
+            setColor();
             addMouseListener(new SquareMouseListener());
         }
 
@@ -300,18 +307,22 @@ public class BoardView extends AbstractBoard implements GUICreator {
             infoState = other.infoState;
         }
 
-        private void setColor() {
+        public void setColor() {
+            Color baseColor = mySquare.isLight() ?
+                    LiteChessGUI.style.baseLight :
+                    LiteChessGUI.style.baseDark;
+
             if(moveState == SqMoveHL.None) {
                 switch (infoState) {
                     case None -> setBackground(baseColor);
-                    case Checked -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqihCheck));
-                    case Moved -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqihMoved));
-                    case Arrived -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqihArrived));
+                    case Checked -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihCheck));
+                    case Moved -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihMoved));
+                    case Arrived -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihArrived));
                 }
             }else {
                 switch(moveState) {
-                    case Move -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqmhMove));
-                    case Selected -> setBackground(ColorUtil.blend(baseColor, LiteChessGUI.style.sqmhSelected));
+                    case Move -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqmhMove));
+                    case Selected -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqmhSelected));
                 }
             }
         }

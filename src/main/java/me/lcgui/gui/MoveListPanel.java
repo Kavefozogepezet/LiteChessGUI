@@ -22,6 +22,8 @@ public class MoveListPanel implements GUICreator {
     private Game myGame;
     private JScrollPane GUIRoot;
 
+    private int deltaPly = 0;
+
     public MoveListPanel() {
         createGUI();
     }
@@ -31,8 +33,12 @@ public class MoveListPanel implements GUICreator {
             myGame.moveEvent.removeListener(onMovePlayed);
 
         tModel.setRowCount(0);
+        deltaPly = 0;
         myGame = game;
         myGame.moveEvent.addListener(onMovePlayed);
+
+        for(var moveData : myGame.getMoveList())
+            addMove(moveData);
     }
 
     @Override
@@ -78,13 +84,24 @@ public class MoveListPanel implements GUICreator {
         return GUIRoot;
     }
 
-    private final Event.Listener<Game.MoveData> onMovePlayed = (Game.MoveData move) -> {
-        int ply = myGame.getState().getPly() - 1;
+    private void addMove(Game.MoveData moveData) {
+        int ply = myGame.getStartPly() + deltaPly++;
         int moveNum =  ply / 2 + 1;
-        if(moveNum > tModel.getRowCount())
-            tModel.addRow(new Object[] { moveNum, move.SAN, "", "" });
-        else
-            tModel.setValueAt(move.SAN, moveNum - 1, 2);
+
+        boolean white = moveData.move.moving.isWhite();
+
+        if(white) {
+            tModel.addRow(new Object[] { moveNum, moveData.SAN, moveData.comment, "" });
+        } else {
+            tModel.setValueAt(moveData.SAN, moveNum - 1, 2);
+            tModel.setValueAt(moveData.comment, moveNum - 1, 4);
+        }
+    }
+
+    private final Event.Listener<Game.MoveData> onMovePlayed = (Game.MoveData moveData) -> {
+        SwingUtilities.invokeLater(() -> {
+            addMove(moveData);
+        });
     };
 
     private boolean isMoveAt(int col, int row) {
