@@ -1,24 +1,20 @@
 package me.lcgui.gui;
 
 import me.lcgui.game.Game;
-import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
+import me.lcgui.misc.MathExt;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.util.LinkedList;
 
 public class MoveListPanel implements GUICreator {
-    private static final int PLY_COL = 0;
-    private static final int WHITE_MOVE_COL = 1;
-    private static final int BLACK_MOVE_COL = 2;
-    private static final int WHITE_COMMENT_COL = 3;
-    private static final int BLACK_COMMENT_COL = 4;
-
-    private final DefaultTableModel tModel = new DefaultTableModel(new String[] { "", "white", "black", "white's comment", "black's comment" }, 0);
+    private final MoveModel tModel = new MoveModel();
     private Game myGame;
     private JScrollPane GUIRoot;
 
@@ -32,41 +28,21 @@ public class MoveListPanel implements GUICreator {
         if(myGame != null)
             myGame.moveEvent.removeListener(onMovePlayed);
 
-        tModel.setRowCount(0);
+        tModel.clear();
         deltaPly = 0;
         myGame = game;
         myGame.moveEvent.addListener(onMovePlayed);
 
         for(var moveData : myGame.getMoveList())
-            addMove(moveData);
+            tModel.addMove(moveData);
     }
 
     @Override
     public Component createGUI() {
-        JTable jTable = new JTable(tModel) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == WHITE_COMMENT_COL || column == BLACK_COMMENT_COL;
-            }
-        };
+        JTable jTable = new JTable(tModel);
         jTable.setFillsViewportHeight(true);
         jTable.getTableHeader().setReorderingAllowed(false);
         jTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-        tModel.addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                int col = e.getColumn();
-                if(col != WHITE_COMMENT_COL && col != BLACK_COMMENT_COL)
-                    return;
-
-                for(int row = e.getFirstRow(); row <= e.getLastRow(); row++) {
-                    int ply = ((Integer) tModel.getValueAt(row, PLY_COL) - 1) * 2;
-                    if(col == BLACK_COMMENT_COL)
-                        ply++;
-                    myGame.getMoveData(ply).comment = (String)tModel.getValueAt(row, col);
-                }
-            }
-        });
 
         TableColumnModel tcModel = jTable.getColumnModel();
         int[] widths = { 32, 64, 64 };
@@ -84,27 +60,101 @@ public class MoveListPanel implements GUICreator {
         return GUIRoot;
     }
 
-    private void addMove(Game.MoveData moveData) {
-        int ply = myGame.getStartPly() + deltaPly++;
-        int moveNum =  ply / 2 + 1;
-
-        boolean white = moveData.move.moving.isWhite();
-
-        if(white) {
-            tModel.addRow(new Object[] { moveNum, moveData.SAN, moveData.comment, "" });
-        } else {
-            tModel.setValueAt(moveData.SAN, moveNum - 1, 2);
-            tModel.setValueAt(moveData.comment, moveNum - 1, 4);
-        }
-    }
-
     private final Event.Listener<Game.MoveData> onMovePlayed = (Game.MoveData moveData) -> {
         SwingUtilities.invokeLater(() -> {
-            addMove(moveData);
+            tModel.addMove(moveData);
+            //addMove(moveData);
         });
     };
 
     private boolean isMoveAt(int col, int row) {
         return !tModel.getValueAt(row, col).equals("...");
+    }
+
+    private static class MoveModel extends AbstractTableModel {
+        private static final int
+                SERIAL_COLUMN = 0,
+                WHITE_MOVE_COLUMN = 1,
+                BLACK_MOVE_COLUMN = 2,
+                WHITE_COMMENT_COLUMN = 3,
+                BLACK_COMMENT_COLUMN = 4,
+
+                COLUMN_COUNT = 5;
+
+        private static final String[] columnNames = new String[] { "", "white", "black", "white's comment", "black's comment" };
+
+        LinkedList<Round> moveList = new LinkedList<>();
+
+        public void addMove(Game.MoveData moveData) {
+            if(moveData.move.moving.isWhite()) {
+                int serial = moveData.ply / 2 + 1;
+                Round r = new Round(serial);
+                r.moves[0] = moveData;
+                moveList.add(r);
+                fireTableRowsUpdated(moveList.size() - 1, moveList.size() - 1);
+            } else {
+                moveList.getLast().moves[1] = moveData;
+                fireTableRowsInserted(moveList.size() - 1, moveList.size() - 1);
+            }
+        }
+
+        public void clear() {
+            if(!moveList.isEmpty()) {
+                int last = moveList.size() - 1;
+                moveList.clear();
+                fireTableRowsDeleted(0, last);
+            }
+        }
+
+        @Override
+        public int getRowCount() {
+            return moveList.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return COLUMN_COUNT;
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            int idx = MathExt.clamp(column, 0, columnNames.length);
+            return columnNames[idx];
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            Round r = moveList.get(rowIndex);
+            return switch (columnIndex) {
+                case SERIAL_COLUMN -> Integer.toString(r.serial) + ".";
+                case WHITE_MOVE_COLUMN -> r.moves[0] == null ? "" : r.moves[0].SAN;
+                case BLACK_MOVE_COLUMN -> r.moves[1] == null ? "" : r.moves[1].SAN;
+                case WHITE_COMMENT_COLUMN -> r.moves[0] == null ? "" : r.moves[0].comment;
+                default -> r.moves[1] == null ? "" : r.moves[1].comment;
+            };
+        }
+
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            Round r = moveList.get(rowIndex);
+            if(columnIndex == WHITE_COMMENT_COLUMN)
+                r.moves[0].comment = (String) aValue;
+            else if(columnIndex == BLACK_COMMENT_COLUMN)
+                r.moves[1].comment = (String) aValue;
+        }
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return columnIndex == WHITE_COMMENT_COLUMN || columnIndex == BLACK_COMMENT_COLUMN;
+        }
+
+        private static class Round {
+            public final int serial;
+            public final Game.MoveData[] moves = { null, null };
+
+            private Round(int serial) {
+                this.serial = serial;
+            }
+        }
     }
 }

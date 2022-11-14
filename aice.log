@@ -1,0 +1,452 @@
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Bye bye from AICE!
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+POSITION FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 0 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8885 KNodes (51.3 QNODES) BEST MOVE e2-e4 MOVE ORDERING 94.2
+NULL-MOVE 87.5  HASH HITS 18.0  CUTOFFS 7.9
+
+POSITION FEN: rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 1 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9003 KNodes (51.3 QNODES) BEST MOVE e7-e6 MOVE ORDERING 94.6
+NULL-MOVE 87.7  HASH HITS 31.0  CUTOFFS 12.0
+
+POSITION FEN: rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 2 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9015 KNodes (51.6 QNODES) BEST MOVE d2-d4 MOVE ORDERING 95.5
+NULL-MOVE 89.2  HASH HITS 29.7  CUTOFFS 11.6
+
+POSITION FEN: rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 2 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 3 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9063 KNodes (51.6 QNODES) BEST MOVE d7-d5 MOVE ORDERING 94.8
+NULL-MOVE 86.9  HASH HITS 20.2  CUTOFFS 10.3
+
+POSITION FEN: rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 4 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9245 KNodes (51.6 QNODES) BEST MOVE Nb1-d2 MOVE ORDERING 95.0
+NULL-MOVE 87.9  HASH HITS 26.8  CUTOFFS 9.8
+
+POSITION FEN: rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR b KQkq - 1 3 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 5 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9102 KNodes (51.9 QNODES) BEST MOVE Bf8-e7 MOVE ORDERING 96.0
+NULL-MOVE 88.5  HASH HITS 25.8  CUTOFFS 9.4
+
+POSITION FEN: rnbqk1nr/ppp1bppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR w KQkq - 2 4 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 6 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9169 KNodes (52.2 QNODES) BEST MOVE Ng1-f3 MOVE ORDERING 96.3
+NULL-MOVE 89.6  HASH HITS 22.1  CUTOFFS 8.7
+
+POSITION FEN: rnbqk1nr/ppp1bppp/4p3/3p4/3PP3/5N2/PPPN1PPP/R1BQKB1R b KQkq - 3 4 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 7 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 9153 KNodes (52.2 QNODES) BEST MOVE Ng8-h6 MOVE ORDERING 96.1
+NULL-MOVE 90.0  HASH HITS 20.3  CUTOFFS 9.0
+
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+POSITION FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 0 Allocated time 5000000 ms Left 5000000 ms
+SEARCH FINISHED, 44978 KNodes (51.4 QNODES) BEST MOVE e2-e4 MOVE ORDERING 94.5
+NULL-MOVE 87.8  HASH HITS 16.3  CUTOFFS 8.9
+
+POSITION FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 0 Allocated time 5000000 ms Left 5000000 ms
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+POSITION FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 0 Allocated time 5000000 ms Left 5000000 ms
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+POSITION FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 0 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8588 KNodes (51.4 QNODES) BEST MOVE e2-e4 MOVE ORDERING 94.2
+NULL-MOVE 87.5  HASH HITS 18.2  CUTOFFS 7.9
+
+POSITION FEN: rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 1 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8683 KNodes (51.2 QNODES) BEST MOVE e7-e6 MOVE ORDERING 94.4
+NULL-MOVE 87.3  HASH HITS 29.3  CUTOFFS 11.8
+
+POSITION FEN: rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 2 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8802 KNodes (51.3 QNODES) BEST MOVE d2-d4 MOVE ORDERING 95.4
+NULL-MOVE 89.1  HASH HITS 32.7  CUTOFFS 12.4
+
+POSITION FEN: rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq d3 0 2 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 3 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8855 KNodes (51.6 QNODES) BEST MOVE d7-d5 MOVE ORDERING 95.3
+NULL-MOVE 87.7  HASH HITS 28.7  CUTOFFS 11.6
+
+POSITION FEN: rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 4 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8992 KNodes (51.5 QNODES) BEST MOVE Nb1-d2 MOVE ORDERING 95.6
+NULL-MOVE 87.9  HASH HITS 28.8  CUTOFFS 11.0
+
+POSITION FEN: rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR b KQkq - 1 3 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 5 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8858 KNodes (51.3 QNODES) BEST MOVE Nb8-c6 MOVE ORDERING 95.7
+NULL-MOVE 87.9  HASH HITS 26.7  CUTOFFS 10.6
+
+POSITION FEN: r1bqkbnr/ppp2ppp/2n1p3/3p4/3PP3/8/PPPN1PPP/R1BQKBNR w KQkq - 2 4 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 6 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8972 KNodes (52.5 QNODES) BEST MOVE Ng1-f3 MOVE ORDERING 95.6
+NULL-MOVE 89.1  HASH HITS 22.0  CUTOFFS 8.1
+
+POSITION FEN: r1bqkbnr/ppp2ppp/2n1p3/3p4/3PP3/5N2/PPPN1PPP/R1BQKB1R b KQkq - 3 4 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 7 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8835 KNodes (53.2 QNODES) BEST MOVE Bc8-d7 MOVE ORDERING 95.7
+NULL-MOVE 89.0  HASH HITS 25.1  CUTOFFS 10.5
+
+POSITION FEN: r2qkbnr/pppb1ppp/2n1p3/3p4/3PP3/5N2/PPPN1PPP/R1BQKB1R w KQkq - 4 5 
+ENGINE IS PLAYING WHITE. OPENING STAGE. Ply 8 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8853 KNodes (54.3 QNODES) BEST MOVE Bf1-d3 MOVE ORDERING 95.6
+NULL-MOVE 89.8  HASH HITS 29.7  CUTOFFS 9.4
+
+POSITION FEN: r2qkbnr/pppb1ppp/2n1p3/3p4/3PP3/3B1N2/PPPN1PPP/R1BQK2R b KQkq - 5 5 
+ENGINE IS PLAYING BLACK. OPENING STAGE. Ply 9 Allocated time 5000 ms Left 5000 ms
+SEARCH FINISHED, 8910 KNodes (53.2 QNODES) BEST MOVE Nc6-b4 MOVE ORDERING 95.6
+NULL-MOVE 88.9  HASH HITS 23.4  CUTOFFS 11.3
+
+I/O error sending [move c6b4
+].
+SEARCH FINISHED, 8833294 KNodes (52.2 QNODES) BEST MOVE e2-e4 MOVE ORDERING 93.9
+NULL-MOVE 88.1  HASH HITS 11.2  CUTOFFS 10.0
+
+I/O error sending [move e2e4
+].
+SEARCH FINISHED, 8820386 KNodes (51.8 QNODES) BEST MOVE e2-e4 MOVE ORDERING 94.0
+NULL-MOVE 88.1  HASH HITS 11.7  CUTOFFS 9.7
+
+I/O error sending [move e2e4
+].
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.
+Welcome to AICE 0.99.2 
+Author: Anastasios Milikas / Christos Boussios
+Hash size 32.0 Mb (1398102 entries)
+Pawn hash size 0.5 Mb (5958 entries)
+No book loaded.

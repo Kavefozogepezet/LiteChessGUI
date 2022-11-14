@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="author" content="Apostagi Bálint">
+        <title>Lite Chess GUI - Grafikus felület</title>
+    </head>
+    <body>
+        <div>
+            <a href="index.html" class="home_button">&lt; Vissza a főoldalra</a>
+            <hr>    
+        </div>
+        <main>
+            <section>
+                <h1>Grafikus felület</h1>
+                <p>
+                    A menürendszer (sárga) segítségével kezelhetők a játszmák, az engine-ek, és személyre szabható az alkalmazás kinézete. Az felületnek két fő komponense van. Baloldalt a sakktábla (zöld), sakkóra (piros), és az eszköztár (kék), jobboldalt az információs panel látszik, melyben a különböző fülek (magenta) alatti táblázatban (narancs) megtekinthető a lépések listája, és az egyes sakk engine-ek kimenete.
+                </p>
+                <br>
+                <img src="graphics/app.png" alt="Hiányzik a grafikus felületet ábrázoló kép.">
+            </section>
+            <section>
+                <h2>Menürendszer</h2>
+                <p>A menürendszerről bővebb tájékoztatást kaphat az alábbi oldalakon:</p>
+                <ul>
+                    <li><a href="game.html">Játszma indítása, kezelése</a></li>
+                    <li><a href="engines.html">Sakk engine-ek az alkalmazásban</a></li>
+                    <li><a href="preferences.html">Az alkalmazás személyre szabása.</a></li>
+                </ul>
+                <p>A sakk pontos szabályairól tájékozódhat a "Help > Laws of Chess" menüpont alatt.</p>    
+            </section>
+            <section>
+                <h2>Sakkóra</h2>
+                <p>A sakkórán láthatja a játékosok neveit, és megmaradt idejüket. Az óra másodperc pontossággal mutatja az időt, ha a játékosnak több mint 10 másodperce maradt még. Ha ennél kevesebb ideje maradt, az óra tizedmásodperc pontosságra vált. Az óra a háttérszínével jelzi, hogy a sötét vagy a világos játékos idejét mutatja.</p>
+            </section>
+            <section>
+                <h2>Sakktábla</h2>
+                <p>A sakktábla mutatja a játékállást, színezett mezőkkel jelzi a sakkállást, utolsó lépés kezdő és cél mezejét és a kiválasztott bábu legális lépéseit.</p>
+                <p>A sakktábla személyreszabásáról, valamint lépés beviteléről az alábbi oldalakon tájékozódhat:</p>
+                <ul>
+                    <li><a href="chessboard.html">Lépés, a sakktábla kezelése</a></li>
+                    <li><a href="preferences.html">Az alkalmazás személyre szabása.</a></li>    
+                </ul>
+            </section>
+            <section>
+                <h2>Eszköztár</h2>
+                <p>Feladhatja a játszmát, vagy döntetlent igényelhet. Az alkalmazás lehetővé teszi, hogy a lépéseket visszapörgetve a parti egy korábbi állását megtekintse.</p>
+                <p>Az eszköztárról bővebben itt olvashat:</p>
+                <ul>
+                    <li><a href="chessboard.html">Lépés, a sakktábla kezelése</a></li> 
+            </section>
+            <section>
+                <h2>Információs panel</h2>
+                <p>A panel fülei közül az első mindíg a lépések listája. Itt látható a körök sorszába, és sötét és világos lépései, táblázatos formában. A játékosok a lépésekhez kommenteket fűzhetnek. Ezt a "white's comment" vagy a "black's comment" oszlop megfelelő cellájára kattintva tehetik meg.</p>
+                <p>A panel többi füle alatt a betöltött engine-ek keresési eredményeik táblázatban olvashatók. Minden fül szövege megegyezik a hozzárendelt engine nevével. A táblázatban mindíg a legutoljára küldött eredmény van a legelső sorban. Az oszlopok a következőképpen értelmezendőek:</p>
+                <img src="graphics/search.png" alt="Hiányzik a z engine kimenetet ábrázoló kép.">
+                <ol>
+                    <li><b>depth:</b> A keresés mélysége féllépésekben.</li>
+                    <li><b>score:</b> Az állás értékelése "centipawn" mértékegységben. A "centipawn" egy gyalog századrészével azonos előnyt jelent. Ha pozitív, akkor az engine úgy gondolja, előnyben van, ha negatív akkor pedig hátrányban.</li>
+                    <li><b>time:</b> A keresés kezdetétől számított idő millisecundum-ban.</li>
+                    <li><b>nodes:</b> Az engine által megvizsgált lépéssorozatok száma.</li>
+                    <li><b>nps (nodes per second):</b> A másodpercenként megvizsgált játékállások száma.</li>
+                    <li><b>pv (principal variation): </b> A keresés aktuális eredménye. A legjobb lépéssorozat az engine értékelése szerint.</li>
+                </ol>
+            </section>
+        </main>
+        <div>
+            <hr>
+            <p>
+                <a href="https://www.iit.bme.hu/oktatas/tanszeki_targyak/BMEVIIIAB00">A programozás alapjai 3 - BMEVIIIAB00</a> tárgy házifeladat,<br>
+                2022/23/1 félév,<br>
+                Apostagi Bálint - WAOIBU    
+            </p>
+        </div>
+    </body>
+</html>

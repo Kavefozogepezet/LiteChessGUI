@@ -1,5 +1,6 @@
 package me.lcgui.gui;
 
+import com.sun.jdi.Method;
 import me.lcgui.app.LiteChessGUI;
 import me.lcgui.engine.Engine;
 import me.lcgui.engine.EngineConfig;
@@ -16,14 +17,38 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class LCGUIWindow extends JFrame {
+    private static final BufferedImage icon;
+
+    static {
+        BufferedImage tempIcon = null;
+        try {
+            tempIcon = ImageIO.read(new File("lite_chess_gui_icon.png"));
+        } catch (IOException ignored) {}
+        icon = tempIcon;
+    }
+
+    public static Dimension defaultSize = new Dimension(640, 480);
+    public static Dimension minimumSize = new Dimension(640, 480);
+
     private static final int MOVES_TAB = 0;
     private static final int ENGINE_TAB_1 = 1;
     private static final int ENGINE_TAB_2 = 2;
@@ -36,17 +61,12 @@ public class LCGUIWindow extends JFrame {
     private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     private final MoveListPanel moveList = new MoveListPanel();
 
-    //TEMP
-
     public LCGUIWindow() {
         super("Lite Chess GUI");
-        setSize(new Dimension(1280, 720));
-        setMinimumSize(new Dimension(640, 480));
+        setSize(defaultSize);
+        setMinimumSize(minimumSize);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        try {
-            setIconImage(ImageIO.read(new File("lite_chess_gui_icon.png")));
-        } catch (IOException ignore) {}
+        setIconImage(icon);
 
         createGUI();
         createMenuBar();
@@ -114,6 +134,7 @@ public class LCGUIWindow extends JFrame {
         menuBar.add(createGameMenu());
         menuBar.add(createEngineMenu());
         menuBar.add(createPreferencesMenu());
+        menuBar.add(createHelpMenu());
 
         setJMenuBar(menuBar);
     }
@@ -173,7 +194,7 @@ public class LCGUIWindow extends JFrame {
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(
                         null, "Error while creating game:\n" + ex.getMessage(),
-                        "New Game", JOptionPane.INFORMATION_MESSAGE
+                        "New Game", JOptionPane.ERROR_MESSAGE
                 );
             }
         }
@@ -391,16 +412,30 @@ public class LCGUIWindow extends JFrame {
                 options.add(provider.getRootComponent());
             }
             options.setBorder(new TitledBorder("Options"));
+            options.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+
+            JPanel buttons = new JPanel();
+            buttons.setLayout(new GridLayout(1, 2));
+            buttons.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+
+            JButton reset = new JButton("Reset");
+            reset.addActionListener(l -> {
+                for(var op : config.options.values())
+                    op.reset();
+            });
+            buttons.add(reset);
 
             JButton uninstal = new JButton("Uninstall");
-            uninstal.addActionListener((l) -> {
+            uninstal.addActionListener(l -> {
                 tabs.remove(panel);
                 LiteChessGUI.engineManager.uninstallEngine(name);
                 if(tabs.getTabCount() == 0)
                     dialog.dispose();
             });
+            buttons.add(uninstal);
+
             panel.add(options);
-            panel.add(uninstal);
+            panel.add(buttons);
             panel.setBorder(new EmptyBorder(16, 16, 16, 16));
 
             tabs.addTab(name, null, panel);
@@ -462,6 +497,83 @@ public class LCGUIWindow extends JFrame {
         prefs.add(showInfo);
         prefs.add(styles);
         return prefs;
+    }
+
+    private JMenu createHelpMenu() {
+        JMenu helpMenu = new JMenu("Help");
+
+        JMenuItem help = new JMenuItem("Help");
+        help.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
+        help.addActionListener(this::onHelp);
+
+        JMenuItem laws = new JMenuItem("Laws of Chess");
+        laws.addActionListener(this::onLawsOfChess);
+
+        helpMenu.add(help);
+        helpMenu.add(laws);
+        return helpMenu;
+    }
+
+    private void onHelp(ActionEvent e) {
+        JFrame docFrame = new JFrame("Lite Chess GUI Documentation");
+
+        JEditorPane docPane = new JEditorPane();
+        Consumer<URL> setPage = (URL url) -> {
+            try {
+                if(url.toString().startsWith("file:"))
+                    docPane.setPage(url);
+                else {
+                    try {
+                        Desktop.getDesktop().browse(url.toURI());
+                    } catch (URISyntaxException ignored) {}
+                }
+            } catch (IOException ex) {
+                docPane.setText("ERROR." + ex.getMessage());
+            }
+        };
+
+        docPane.setEditable(false);
+        docPane.setContentType("text/html");
+        docPane.addHyperlinkListener(link -> {
+            if(link.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+                setPage.accept(link.getURL());
+        });
+        docPane.setBorder(new EmptyBorder(32, 64, 32, 64));
+
+        File indexFile = new File("docs", "index.html");
+        try {
+            setPage.accept(indexFile.toURI().toURL());
+        } catch (MalformedURLException ex) {
+            docPane.setText("ERROR." + ex.getMessage());
+        }
+
+        JScrollPane scrollPane = new JScrollPane(docPane);
+        scrollPane.setPreferredSize(new Dimension(640, 480));
+
+        docFrame.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                var size = docFrame.getSize();
+                int delta = (size.width - 480) / 2;
+                int margin = delta * 75 / 100;
+                docPane.setBorder(new EmptyBorder(32, margin, 32, margin));
+            }
+        });
+
+        docFrame.add(scrollPane);
+        docFrame.setMinimumSize(minimumSize);
+        docFrame.setIconImage(icon);
+        docFrame.pack();
+        docFrame.setVisible(true);
+    }
+
+    private void onLawsOfChess(ActionEvent e) {
+        Desktop d = Desktop.getDesktop();
+        URI FIDEpage = null;
+        try {
+            FIDEpage = new URI("https://www.fide.com/FIDE/handbook/LawsOfChess.pdf");
+            d.browse(FIDEpage);
+        } catch (URISyntaxException | IOException ignored) {}
     }
 
     private class StyleLoader implements ActionListener{

@@ -59,7 +59,6 @@ public class FEN implements GameSetup, Serializable {
         fen = fenBuilder.toString();
     }
 
-    // TODO fix ply conversion
     public void set(Game game) {
         String[] sections = fen.split(" ");
 
@@ -90,7 +89,9 @@ public class FEN implements GameSetup, Serializable {
         Square epTarget = Square.parse(sections[3]);
 
         int ply50 = Integer.parseInt(sections[4]);
-        int ply = Integer.parseInt(sections[5]) - 1;
+        int ply = (Integer.parseInt(sections[5]) - 1) * 2;
+        if(turn == Side.Black) // TODO Test ply conversion
+            ply++;
 
         game.setState(new State(turn, castleRights, epTarget, ply, ply50));
     }

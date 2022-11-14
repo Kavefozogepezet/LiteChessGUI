@@ -11,23 +11,10 @@ import java.util.Collection;
 public class Args {
     public static class Check
             extends AbstractArg<Boolean>
-            implements Serializable
-    {
-        protected boolean value = false;
+            implements Serializable {
 
         public Check(String name, boolean value) {
-            super(name);
-            this.value = value;
-        }
-
-        @Override
-        public Boolean getValue() {
-            return value;
-        }
-
-        @Override
-        public void setValue(Boolean value) {
-            value = false;
+            super(name, value);
         }
 
         @Override
@@ -39,17 +26,11 @@ public class Args {
         public void accept(ArgGUIProvider guiProvider) {
             guiProvider.createGUIObject(this);
         }
-
-        @Override
-        public String toString() {
-            return Boolean.toString(value);
-        }
     }
 
     public static class Button
             extends Check
-            implements Serializable
-    {
+            implements Serializable {
         public Button(String name) {
             super(name, false);
         }
@@ -74,26 +55,13 @@ public class Args {
             extends AbstractArg<String>
             implements Serializable
     {
-        protected String value;
-
         public Str(String name, String value) {
-            super(name);
-            this.value = value;
+            super(name, value);
         }
 
         @Override
         public boolean hasValue() {
             return true;
-        }
-
-        @Override
-        public String getValue() {
-            return value;
-        }
-
-        @Override
-        public void setValue(String value) {
-            this.value = value;
         }
 
         @Override
@@ -108,9 +76,8 @@ public class Args {
     }
 
     public static class Combo
-        extends Str
-        implements Serializable
-    {
+            extends Str
+            implements Serializable {
         private final ArrayList<String> options;
 
         public Combo(String name, String value, Collection<String> options) {
@@ -121,7 +88,7 @@ public class Args {
         @Override
         public void setValue(String value) {
             if(options.contains(value))
-                this.value = value;
+                super.setValue(value);
         }
 
         @Override
@@ -139,13 +106,11 @@ public class Args {
             implements Serializable
     {
         private final int min, max;
-        private int value;
 
         public Spin(String name, int min, int max, int value) {
-            super(name);
+            super(name, value);
             this.min = min;
             this.max = max;
-            setValue(value);
         }
 
         @Override
@@ -154,23 +119,14 @@ public class Args {
         }
 
         @Override
-        public Integer getValue() {
-            return value;
-        }
-
-        @Override
         public void setValue(Integer value) {
-            this.value = MathExt.clamp(value, min, max);
+            value = MathExt.clamp(value, min, max);
+            super.setValue(value);
         }
 
         @Override
         public void accept(ArgGUIProvider guiProvider) {
             guiProvider.createGUIObject(this);
-        }
-
-        @Override
-        public String toString() {
-            return Integer.toString(value);
         }
 
         public int getMin() {

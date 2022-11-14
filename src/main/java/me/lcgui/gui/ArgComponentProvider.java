@@ -38,9 +38,16 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
     public void createGUIObject(Args.Check arg) {
         var check = new JCheckBox();
         check.setSelected(arg.getValue());
+
         check.addActionListener((e) -> {
             arg.setValue(check.isSelected());
         });
+
+        arg.changedEvent.addListener(b -> {
+            if(!b.equals(check.isSelected()))
+                check.setSelected(b);
+        });
+
         component = check;
     }
 
@@ -53,9 +60,16 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
     public void createGUIObject(Args.Str arg) {
         var field = new JTextField();
         field.setText(arg.getValue());
+
         field.addActionListener((a) -> {
             arg.setValue(field.getText());
         });
+
+        arg.changedEvent.addListener(str -> {
+            if(!str.equals(field.getText()))
+                arg.setValue(field.getText());
+        });
+
         component = field;
     }
 
@@ -63,9 +77,16 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
     public void createGUIObject(Args.Combo arg) {
         var combo = new JComboBox<>(arg.getOptions().toArray(new String[0]));
         combo.setSelectedItem(arg.getValue());
+
         combo.addActionListener((l) -> {
             arg.setValue((String) combo.getSelectedItem());
         });
+
+        arg.changedEvent.addListener(str -> {
+            if(!str.equals(combo.getSelectedItem()))
+                arg.setValue((String) combo.getSelectedItem());
+        });
+
         component = combo;
     }
 

@@ -24,10 +24,7 @@ public class EngineManager implements Serializable {
         return installedEngines.keySet();
     }
 
-    public String installEngine(File path, String protocol) throws
-            ExecutionControl.NotImplementedException,
-            EngineVerificationFailure
-    {
+    public String installEngine(File path, String protocol) throws EngineVerificationFailure {
         EngineConfig config = new EngineConfig(protocol, path);
         Engine engine = makeEngine(config);
         engine.setInitStart(true);
@@ -46,10 +43,7 @@ public class EngineManager implements Serializable {
         installedEngines.remove(name);
     }
 
-    public Engine getInstance(String name) throws
-            ExecutionControl.NotImplementedException,
-            EngineVerificationFailure
-    {
+    public Engine getInstance(String name) throws EngineVerificationFailure {
         EngineWrapper wrapper = runningEngines.get(name);
         Engine engine;
 

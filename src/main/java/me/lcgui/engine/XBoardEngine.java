@@ -2,7 +2,9 @@ package me.lcgui.engine;
 
 import me.lcgui.engine.args.AbstractArg;
 import me.lcgui.engine.args.Args;
+import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
+import me.lcgui.game.board.Side;
 import me.lcgui.game.movegen.Move;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
@@ -15,62 +17,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-// TODO
 @ProtocolImplementation(name = "XBoard")
-public class XBoardEngine implements Engine {
-    private final EngineConfig config;
+public class XBoardEngine extends AbstractEngine {
     private final Features myFeatures = new Features();
-    private String name;
-    private boolean running = false;
-    private boolean initStart = false;
-    private boolean searching = false;
-
-    private Game game;
-    private String pvMove = null;
-
-    public final Event<Consumable<Move>> bestEvent = new Event<>();
-    public final Event<SearchInfo> infoEvent = new Event<>();
-    public final Event<ComData> comEvent = new Event<>();
-    public final Event<Engine> releasedEvent = new Event<>();
-
-    private Scanner in;
-    private PrintStream out;
-
-    private SearchInfo lastInfo = new SearchInfo();
+    private Move lastPvMove = null;
 
     public XBoardEngine(EngineConfig config) {
-        this.config = config;
-        name = config.file.getName(); // temporary name
+        super(config);
     }
 
     @Override
-    public void verify() throws EngineVerificationFailure {
-        if(running)
-            return;
-
-        try {
-            synchronized (this) {
-                wait(VERIFICATION_WINDOW_SIZE);
-                if(!running)
-                    throw new EngineVerificationFailure(
-                            "Engine not responded correctly, check that the it is installed with the correct protocol"
-                    );
-            }
-        } catch (InterruptedException ignored) {
-            throw new EngineVerificationFailure("Thread interrupted");
-        }
-    }
-
-    @Override
-    public void isReady() {
+    public synchronized void isReady() {
         if(!myFeatures.ping)
             return;
 
         try {
-            synchronized (this) {
-                writeToEngine("ping 1"); // TODO pong N
-                this.wait();
-            }
+            writeToEngine("ping 1");
+            this.wait();
         } catch (InterruptedException ignored) {}
     }
 
@@ -80,132 +43,140 @@ public class XBoardEngine implements Engine {
     }
 
     @Override
-    public void release() {
-        releasedEvent.invoke(this);
-    }
-
-    @Override
     public void startSearch() {
-        // TODO
+        if(game.hasEnded())
+            return;
+
+        Side side = game.getState().getTurn();
+        Clock clock = game.getClock();
+        if(game.usesTimeControl()) {
+            writeToEngine("time " + clock.getRemainingMs(side));
+            writeToEngine("otime " + clock.getRemainingMs(side.other()));
+        } else {
+            writeToEngine("st 5000");
+        }
+        writeToEngine("go");
     }
 
     @Override
     public void stopSearch() {
-        // TODO
-    }
-
-    @Override
-    public boolean isSearching() {
-        return searching;
-    }
-
-    @Override
-    public void addMoveListener(Event.Listener<Consumable<Move>> listener) {
-        bestEvent.addListener(listener);
-    }
-
-    @Override
-    public void removeMoveListener(Event.Listener<Consumable<Move>> listener) {
-        bestEvent.removeListener(listener);
-    }
-
-    @Override
-    public Event<SearchInfo> getInfoEvent() {
-        return infoEvent;
-    }
-
-    @Override
-    public Event<ComData> getComEvent() {
-        return comEvent;
-    }
-
-    @Override
-    public Event<Engine> getReleasedEvent() {
-        return releasedEvent;
+        writeToEngine("?");
     }
 
     @Override
     public void playingThis(Game game) {
-        // TODO
-    }
+        writeToEngine("new");
+        if(!game.isDefaultStart())
+            writeToEngine("setboard " + game.getStartFen());
+        writeToEngine("force");
+        isReady();
 
-    @Override
-    public Game getCurrentGame() {
-        return game;
-    }
+        if(this.game != null)
+            this.game.moveEvent.removeListener(onMovePlayed);
 
-    @Override
-    public void setInitStart(boolean initStart) {
-        this.initStart = initStart;
+        this.game = game;
+        lastPvMove = null;
+        game.moveEvent.addListener(onMovePlayed);
     }
 
     @Override
     public void setOption(String option, String value) {
-
+        writeToEngine("option " + option + "=" + value);
     }
 
     @Override
-    public String getEngineName() {
-        return name;
-    }
+    protected void handshake() throws EngineVerificationFailure {
+        writeToEngine("xboard");
+        writeToEngine("protover 2");
 
-    @Override
-    public void run() {
-        ProcessBuilder processBuilder = new ProcessBuilder(config.file.getPath());
-        Process engineProcess = null;
-        try {
-            engineProcess = processBuilder.start();
-        } catch (IOException e) {
-            return;
-        }
+        String inputLine;
+        do {
+            inputLine = readFromEngine();
+            String[] line = inputLine.split(" ", 2);
+            if (line[0].equals("feature")) {
+                readFeatureList(line[1]);
+            }
+        } while (!myFeatures.done);
 
-        try (
-                var input = engineProcess.getInputStream();
-                var output = engineProcess.getOutputStream()
-        ) {
-            in = new Scanner(input);
-            out = new PrintStream(output, true, StandardCharsets.UTF_8);
-
-            writeToEngine("xboard");
-            writeToEngine("protover 2");
-
-            String inputLine;
-            do {
-                inputLine = readFromEngine();
-                String[] line = inputLine.split(" ");
-                if (line[0].equals("feature")) {
-                    for(int i = 1; i < line.length; i++) {
-                        readFeature(line[i]);
-                    }
-                }
-            } while (!myFeatures.done);
-
+        if(myFeatures.ping) {
             writeToEngine("ping 2");
             do {
                 inputLine = readFromEngine();
             } while (!inputLine.equals("pong 2"));
+        }
 
-            running = true;
-            synchronized (this) {
-                this.notifyAll();
+        writeToEngine("force");
+    }
+
+    @Override
+    protected void processLine(String line) {
+        String[] strs = line.split(" ");
+
+        if(Character.isDigit(strs[0].charAt(0))) {
+            processInfo(line);
+            return;
+        }
+
+        switch (strs[0]) {
+            case "move" -> {
+                lastPvMove = convertMove(strs[1]);
+                bestEvent.invoke(Consumable.create(lastPvMove));
             }
-
-            writeToEngine("post");
-            writeToEngine("new");
-
-            // TODO obviously
-        } catch (Exception ignored) {}
-        finally {
-            engineProcess.destroy();
+            case "pong" -> {
+                synchronized (this) {
+                    notifyAll();
+                }
+            }
         }
     }
 
-    private void readFeature(String featureStr) {
-        String[] feature = featureStr.split("=");
-        String
-                fName = feature[0],
-                fValue = feature[1];
+    private void processInfo(String line) {
+        SearchInfo info = cloneInfo();
+        String[] infos = line.split("\t");
+        if(infos.length == 2) {
+            info.set(SearchInfo.PV, infos[1]);
+            infos = infos[0].split(" ");
+        }
+        info.set(SearchInfo.DEPTH, infos[0]);
+        info.set(SearchInfo.TIME, infos[2]);
+        info.set(SearchInfo.NODES, infos[3]);
 
+        int score = Math.abs(Integer.parseInt(infos[1]));
+        if(score > 100000)
+            info.set(SearchInfo.SCORE, "mate in " + (score - 100000));
+        else
+            info.set(SearchInfo.SCORE, infos[1]);
+
+        int nps = Integer.parseInt(infos[3]) * Integer.parseInt(infos[2]) / 100;
+        info.set(SearchInfo.NPS, Integer.toString(nps));
+
+        newInfo(info);
+    }
+
+    private void readFeatureList(String features) throws EngineVerificationFailure {
+        String remaining = features;
+        while (remaining != null) {
+            if (remaining.charAt(0) == ' ')
+                remaining = remaining.substring(1);
+
+            String[] eqSplit = remaining.split("=", 2);
+            String fName = eqSplit[0];
+            remaining = eqSplit[1];
+
+            String[] split;
+            if (remaining.charAt(0) == '"') {
+                remaining = remaining.substring(1);
+                split = remaining.split("\"", 2);
+            } else {
+                split = remaining.split(" ", 2);
+            }
+            String fValue = split[0];
+            remaining = split.length > 1 ? split[1] : null;
+            readFeature(fName, fValue);
+        }
+    }
+
+    private void readFeature(String fName, String fValue) throws EngineVerificationFailure {
         if(fValue.charAt(0) == '"')
             fValue = fValue.substring(1, fValue.length() - 1);
 
@@ -225,12 +196,12 @@ public class XBoardEngine implements Engine {
                 writeToEngine("accepted " + fName);
             }
             case "reuse" -> {
-                if("1".equals(fValue)) {
-                    myFeatures.reuse = true;
-                    writeToEngine("accepted " + fName);
-                } else {
-                    writeToEngine("rejected " + fName);
-                }
+                if(!"1".equals(fValue))
+                    throw new EngineVerificationFailure("Insufficent features");
+            }
+            case "usermove" -> {
+                myFeatures.usermove = "1".equals(fValue);
+                writeToEngine("accepted " + fName);
             }
             case "option" -> {
                 if(initStart) {
@@ -238,7 +209,7 @@ public class XBoardEngine implements Engine {
                     config.options.put(option.getName(), option);
                 }
             }
-            default -> writeToEngine("rejected " + fName);
+            default -> writeToEngine("accepted " + fName);
         }
     }
 
@@ -276,22 +247,22 @@ public class XBoardEngine implements Engine {
         return arg;
     }
 
-    private void writeToEngine(String line) {
-        out.println(line);
-        comEvent.invoke(new ComData(true, line));
-    }
-
-    private String readFromEngine() {
-        String line = in.hasNextLine()
-                ? in.nextLine()
-                : "";
-        comEvent.invoke(new ComData(false, line));
-        return line;
-    }
-
     private class Features {
         public boolean ping = false;
-        public boolean reuse = false;
         public boolean done = false;
+        public boolean usermove = false;
     }
+
+    private final Event.Listener<Game.MoveData> onMovePlayed = moveData -> {
+        Move move = moveData.move;
+        if (move.equals(lastPvMove)) {
+            lastPvMove = null;
+            return;
+        }
+
+        String moveStr = move.toString();
+        if (myFeatures.usermove)
+            moveStr = "usermove " + moveStr;
+        writeToEngine(moveStr);
+    };
 }

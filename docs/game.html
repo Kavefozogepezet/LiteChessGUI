@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="author" content="Apostagi Bálint">
+        <title>Lite Chess GUI - Játszma indítása, kezelése</title>
+    </head>
+    <body>
+        <div>
+            <a href="index.html" class="home_button">&lt; Vissza a főoldalra</a>
+            <hr>    
+        </div>
+        <main>
+            <h1>Játszma indítása, kezelése</h1>
+            <p>Ez az oldal a "Game" menüpont alatt elérhető funkciók használatát részletezi.</p>
+            <img src="game/menu.png" alt="Hiányzik az almenüket ábrázoló kép.">
+            <section>
+                <h2>New - Új játszma kezdése</h2>
+                <p>Gyorsbillentyű: Ctrl+N</p>
+                <p>Ezt a menüpontot választva megjelenik a "New Game" dialógus ablak, amely segítségével beállíthatja az új partit.</p>
+                <section>
+                    <img src="game/newgame.png" alt="Hiányzik a dialógust ábrázoló kép.">
+                    <h3>White, Black</h3>
+                    <p>Itt állíthatja be a játékosok típusát, és azok paramétereit.</p>
+                    <ul>
+                        <li><b>Human:</b> Emberi játékos, állítható névvel.</li>
+                        <li><b>Engine:</b> Ezt a játékost a kiválasztott sakk engine irányítja.</li>
+                        <li><b>Player over LAN:</b> Másik játékos a lokális hálózatról. Megadható a jelszó, amivel rz a játékos csatlakozni tud a játszmához.</li>
+                    </ul>    
+                </section>
+                <section>
+                    <h3>Time Control</h3>
+                    <p>Itt állíthatja be a sakkórát. Választhat népszerű formátumok közül, vagy a "custom" opciót választva egyedi formátumot definiálhat. Külö-külön beállíthatja sötét és világos idejét, és a lépésenként hozzáadott idejüket, valamint az idő hozzáadásának típusát.</p>
+                    <ul>
+                        <li><b>NONE:</b> Nincs hozzáadott idő.</li>
+                        <li><b>FISCHER:</b> Lépés után az inkrementáció simán hozzáadódik a megmaradt időhöz.</li>
+                        <li><b>DELAY:</b> Nem lépéskor adódik az órához az idő, hanem maga az óra később kezdi el számlálni az eltelt másodperceket.</li>
+                        <li><b>BRONSTEIN:</b> Lépés után az órához hozzáadódik az ebben a lépésben felhasznált idő, és az inkrementáció minimuma.</li>
+                    </ul>
+                    <img src="game/customclock.png" alt="Hiányzik az egyedi óra beállításait ábrázoló kép.">
+                </section>
+                <section>
+                    <h3>Starting position</h3>
+                    <p>A meccs a kezdőpozícióból, vagy egy FEN jelöléssel megadott egyedi pozícióból indul. A FEN jelölést az alkalmazás a  vágóélapról próbálja meg beolvasni.</p>
+                </section>
+            </section>
+            <section>
+                <h2>Save - Játék mentéss</h2>
+                <p>Gyorsbillentyű: Ctrl+S</p>
+                <p>Megnyílik egy fájlválasztó, melyben elmentheti a játszma aktuális állását. A partikat a LCG (Lite Chess Game) formátumban mentheti el, ami az alkalmazás saját formátuma.</p>
+            </section>
+            <section>
+                <h2>Load - Játék betöltése</h2>
+                <p>Gyorsbillentyű: Ctrl+O</p>
+                <p>Egy fájlválasztóval betölthet egy LCG formátumú mérkőzést. Ha a parti félbeszakadt, lehetősége van folytatni. Betöltéskor egy felugró dialógusban, az új játékhoz hasonló dialógusban kiválaszthatja a játékosokat amelyekkel folytatni szeretné a játszmát.</p>
+            </section>
+            <section>
+                <h2>Join LAN game</h2>
+                <p>Gyorsbillentyű: Ctrl+J</p>
+                <p>Itt tud csatlakozni a lokális hálózaton más által létrehozott partihoz. A jelszót, és a nevét egy felugró dialógusban kell megadnia.</p>
+                <img src="game/joining.png" alt="Hiányzik a dialógust ábrázoló kép.">
+            </section>
+            <section>
+                <h2>Import PGN</h2>
+                <p>A vágólapról beolvasott PGN fermátumó játszmát betölti az alkalmazás. Két emberi játékost hoz létre a PGN-ben meghatározott felek alapján. ha a játszma félbeszakadt, folytathatja azt.</p>
+            </section>
+            <section>
+                <h2>Copy PGN</h2>
+                <p>Az alkalmazás a játszma aktuális állását a vágólapra másolja PGN formátumú szövegként.</p>
+            </section>
+            <section>
+                <h2>Copy FEN</h2>
+                <p>Az alkalmazás a játszma aktuális állását a vágólapra másolja FEN formátumú szövegként.</p>
+            </section>
+        </main>
+        <div>
+            <hr>
+            <p>
+                <a href="https://www.iit.bme.hu/oktatas/tanszeki_targyak/BMEVIIIAB00">A programozás alapjai 3 - BMEVIIIAB00</a> tárgy házifeladat,<br>
+                2022/23/1 félév,<br>
+                Apostagi Bálint - WAOIBU
+            </p>
+        </div>
+    </body>
+</html>

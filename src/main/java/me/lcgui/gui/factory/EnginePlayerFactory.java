@@ -20,10 +20,7 @@ public class EnginePlayerFactory implements DrawableFactory<EnginePlayer> {
     }
 
     @Override
-    public EnginePlayer instantiate() throws
-            ExecutionControl.NotImplementedException,
-            EngineVerificationFailure
-    {
+    public EnginePlayer instantiate() throws EngineVerificationFailure {
         String engineName = (String) engineOptions.getSelectedItem();
         Engine engine = LiteChessGUI.engineManager.getInstance(engineName);
         return new EnginePlayer(engine);

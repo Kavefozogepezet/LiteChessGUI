@@ -51,18 +51,20 @@ public class Game implements Serializable {
     }
 
     public static class MoveData implements Serializable {
+        public final int ply;
         public final Move move;
         public final String SAN;
         public String comment;
 
-        MoveData(Move move, String SAN, String comment) {
+        MoveData(int ply, Move move, String SAN, String comment) {
+            this.ply = ply;
             this.move = move;
             this.SAN = SAN;
             this.comment = comment;
         }
 
-        MoveData(Move move, String SAN) {
-            this(move, SAN, null);
+        MoveData(int ply, Move move, String SAN) {
+            this(ply, move, SAN, null);
         }
 
         public boolean hasComment() {
@@ -227,7 +229,7 @@ public class Game implements Serializable {
                 san.check();
         }
 
-        MoveData moveData = new MoveData(move, san.toString());
+        MoveData moveData = new MoveData(state.getPly() - 1, move, san.toString());
         moveList.add(moveData);
         moveEvent.invoke(moveData);
 

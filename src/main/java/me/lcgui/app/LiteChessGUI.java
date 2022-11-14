@@ -14,6 +14,7 @@ import org.reflections.Reflections;
 
 import javax.swing.*;
 import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;

@@ -16,66 +16,21 @@ import java.util.LinkedList;
 import java.util.Scanner;
 
 @ProtocolImplementation(name = "UCI")
-public class UCIEngine implements Engine {
-    private final EngineConfig config;
-    private String name;
-    private boolean running = false;
-    private boolean initStart = false;
-    private boolean searching = false;
-
-    private Game game;
-    private String pvMove = null;
-
-    public final Event<Consumable<Move>> bestEvent = new Event<>();
-    public final Event<SearchInfo> infoEvent = new Event<>();
-    public final Event<ComData> comEvent = new Event<>();
-    public final Event<Engine> releasedEvent = new Event<>();
-
-    private Scanner in;
-    private PrintStream out;
-
-    private SearchInfo lastInfo = new SearchInfo();
-
+public class UCIEngine extends AbstractEngine {
     public UCIEngine(EngineConfig config) {
-        this.config = config;
-        name = config.file.getName(); // temporary name
+        super(config);
     }
 
-    @Override
-    public void verify() throws EngineVerificationFailure {
-        if(running)
-            return;
-
+    public synchronized void isReady() {
         try {
-            synchronized (this) {
-                wait(VERIFICATION_WINDOW_SIZE);
-                if(!running)
-                    throw new EngineVerificationFailure(
-                            "Engine not responded correctly, check that the it is installed with the correct protocol"
-                    );
-            }
-        } catch (InterruptedException ignored) {
-            throw new EngineVerificationFailure("Thread interrupted");
-        }
-    }
-
-    public void isReady() {
-        try {
-            synchronized (this) {
-                writeToEngine("isready");
-                this.wait();
-            }
+            writeToEngine("isready");
+            this.wait();
         } catch (InterruptedException ignored) {}
     }
 
     @Override
     public void quit() {
         writeToEngine("quit");
-    }
-
-    @Override
-    public void release() {
-        releasedEvent.invoke(this);
     }
 
     @Override
@@ -107,50 +62,10 @@ public class UCIEngine implements Engine {
     }
 
     @Override
-    public boolean isSearching() {
-        return searching;
-    }
-
-    @Override
-    public void addMoveListener(Event.Listener<Consumable<Move>> listener) {
-        bestEvent.addListener(listener);
-    }
-
-    @Override
-    public void removeMoveListener(Event.Listener<Consumable<Move>> listener) {
-        bestEvent.removeListener(listener);
-    }
-
-    @Override
-    public Event<SearchInfo> getInfoEvent() {
-        return infoEvent;
-    }
-
-    @Override
-    public Event<ComData> getComEvent() {
-        return comEvent;
-    }
-
-    @Override
-    public Event<Engine> getReleasedEvent() {
-        return releasedEvent;
-    }
-
-    @Override
     public void playingThis(Game game) {
         writeToEngine("ucinewgame");
         isReady();
         this.game = game;
-    }
-
-    @Override
-    public Game getCurrentGame() {
-        return game;
-    }
-
-    @Override
-    public void setInitStart(boolean initStart) {
-        this.initStart = initStart;
     }
 
     @Override
@@ -159,129 +74,82 @@ public class UCIEngine implements Engine {
     }
 
     @Override
-    public String getEngineName() {
-        return name;
+    protected void handshake() {
+        writeToEngine("uci");
+
+        String inputLine;
+        do {
+            inputLine = readFromEngine();
+            String[] line = inputLine.split(" ");
+            if (line[0].equals("id") && line[1].equals("name"))
+                name = line[2];
+            else if (initStart && line[0].equals("option")) {
+                var option = readOption(line);
+                config.options.put(option.getName(), option);
+            }
+        } while (!inputLine.equals("uciok"));
+
+        writeToEngine("ucinewgame");
+        writeToEngine("isready");
+        do {
+            inputLine = readFromEngine();
+        } while (!inputLine.equals("readyok"));
     }
 
     @Override
-    public void run() {
-        ProcessBuilder processBuilder = new ProcessBuilder(config.file.getPath());
-        Process engineProcess = null;
-        try {
-            engineProcess = processBuilder.start();
-        } catch (IOException e) {
-            return;
-        }
+    protected void processLine(String line) {
+        String[] strs = line.split(" ");
 
-        try (
-                var input = engineProcess.getInputStream();
-                var output = engineProcess.getOutputStream()
-        ) {
-            in = new Scanner(input);
-            out = new PrintStream(output, true, StandardCharsets.UTF_8);
-
-            writeToEngine("uci");
-
-            String inputLine;
-            do {
-                inputLine = readFromEngine();
-                String[] line = inputLine.split(" ");
-                if (line[0].equals("id") && line[1].equals("name"))
-                    name = line[2];
-                else if (initStart && line[0].equals("option")) {
-                    var option = readOption(line);
-                    config.options.put(option.getName(), option);
-                }
-            } while (!inputLine.equals("uciok"));
-
-            writeToEngine("ucinewgame");
-            writeToEngine("isready");
-            do {
-                inputLine = readFromEngine();
-            } while (!inputLine.equals("readyok"));
-
-            running = true;
-            synchronized (this) {
-                this.notifyAll();
+        switch (strs[0]) {
+            case "info" -> processInfo(strs);
+            case "bestmove" -> {
+                Move best = convertMove(strs[1]);
+                bestEvent.invoke(Consumable.create(best));
             }
-
-            // TODO set non default options
-
-            while (in.hasNextLine()) {
-                String line = readFromEngine();
-                String[] strs = line.split(" ");
-
-                switch (strs[0]) {
-                    case "info" -> processInfo(strs);
-                    case "bestmove" -> {
-                        pvMove = strs[1];
-                        Move best = convertMove(pvMove);
-                        bestEvent.invoke(Consumable.create(best));
-                    }
-                    case "readyok" -> {
-                        synchronized (this) {
-                            notifyAll();
-                        }
-                    }
+            case "readyok" -> {
+                synchronized (this) {
+                    notifyAll();
                 }
             }
-        } catch (IOException ignored) {}
-        finally {
-            engineProcess.destroy();
         }
     }
 
-    private Move convertMove(String moveStr) {
-        Move move = null;
-        Square from = Square.parse(moveStr.substring(0, 2));
-        for (var possible : game.getPossibleMoves().from(from)) {
-            if (possible.toString().equals(moveStr)) {
-                move = possible;
-                break;
-            }
-        }
-        return move;
-    }
+    private void processInfo(String[] infoArray) {
+        SearchInfo info = cloneInfo();
 
-    private void processInfo(String[] info) {
-        SearchInfo newInfo = new SearchInfo(lastInfo);
-
-        for(int i = 1; i < info.length; i++) {
-            switch (info[i]) {
-                case "depth" -> newInfo.set(SearchInfo.DEPTH, info[++i]);
-                case "time" -> newInfo.set(SearchInfo.TIME, info[++i]);
-                case "nodes" -> newInfo.set(SearchInfo.NODES, info[++i]);
-                case "nps" -> newInfo.set(SearchInfo.NPS, info[++i]);
+        for(int i = 1; i < infoArray.length; i++) {
+            switch (infoArray[i]) {
+                case "depth" -> info.set(SearchInfo.DEPTH, infoArray[++i]);
+                case "time" -> info.set(SearchInfo.TIME, infoArray[++i]);
+                case "nodes" -> info.set(SearchInfo.NODES, infoArray[++i]);
+                case "nps" -> info.set(SearchInfo.NPS, infoArray[++i]);
                 case "score" -> {
-                    String type = info[++i];
+                    String type = infoArray[++i];
                     StringBuilder scoreStr = new StringBuilder();
                     if(type.equals("cp")) {
-                        scoreStr.append(info[++i]);
-                        if(info[i + 1].equals("upperbound")) {
+                        scoreStr.append(infoArray[++i]);
+                        if(infoArray[i + 1].equals("upperbound")) {
                             scoreStr.insert(0, '<');
                             i++;
-                        } else if(info[i + 1].equals("lowerbound")) {
+                        } else if(infoArray[i + 1].equals("lowerbound")) {
                             scoreStr.insert(0, '>');
                             i++;
                         }
                     } else if(type.equals("mate")) {
-                        scoreStr.append("mate in ").append(info[++i]);
+                        scoreStr.append("mate in ").append(infoArray[++i]);
                     }
-                    newInfo.set(SearchInfo.SCORE, scoreStr.toString());
+                    info.set(SearchInfo.SCORE, scoreStr.toString());
                 }
                 case "pv" -> {
                     StringBuilder pv = new StringBuilder();
-                    for(int pvIdx = i + 1; pvIdx < info.length; pvIdx++)
-                        pv.append(info[pvIdx]).append(" ");
+                    for(int pvIdx = i + 1; pvIdx < infoArray.length; pvIdx++)
+                        pv.append(infoArray[pvIdx]).append(" ");
 
-                    newInfo.set(SearchInfo.PV, pv.toString());
+                    info.set(SearchInfo.PV, pv.toString());
                 }
             }
         }
-        if(newInfo.isDirty() && !newInfo.equals(lastInfo)) {
-            lastInfo = newInfo;
-            infoEvent.invoke(newInfo);
-        }
+        newInfo(info);
     }
 
     private void setPosition() {
@@ -332,18 +200,5 @@ public class UCIEngine implements Engine {
             case "string" -> option = new Args.Str(name, value);
         }
         return option;
-    }
-
-    private void writeToEngine(String line) {
-        out.println(line);
-        comEvent.invoke(new ComData(true, line));
-    }
-
-    private String readFromEngine() {
-        String line = in.hasNextLine()
-                ? in.nextLine()
-                : "";
-        comEvent.invoke(new ComData(false, line));
-        return line;
     }
 }

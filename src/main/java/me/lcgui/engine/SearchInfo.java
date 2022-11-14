@@ -1,6 +1,6 @@
 package me.lcgui.engine;
 
-public class SearchInfo {
+public class SearchInfo implements Cloneable {
     public static final String[] InfoNames = {
             "depth", "score", "time", "nodes", "nps", "pv"
     };
@@ -12,18 +12,15 @@ public class SearchInfo {
 
     public SearchInfo() {}
 
-    public SearchInfo(SearchInfo other) {
-        System.arraycopy(other.array, 0, array, 0, 6);
-        dirty = other.dirty;
-    }
-
     public String get(int idx) {
         return array[idx];
     }
 
     public void set(int idx, String value) {
-        array[idx] = value;
-        dirty = true;
+        if(!value.equals(array[idx])) {
+            array[idx] = value;
+            dirty = true;
+        }
     }
 
     @Override
@@ -42,5 +39,17 @@ public class SearchInfo {
         boolean temp = dirty;
         dirty = false;
         return temp;
+    }
+
+    @Override
+    public SearchInfo clone() {
+        try {
+            SearchInfo clone = (SearchInfo) super.clone();
+            clone.array = array.clone();
+            clone.dirty = false;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }
