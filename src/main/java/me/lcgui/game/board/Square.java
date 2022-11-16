@@ -23,6 +23,10 @@ public class Square implements Serializable {
         this.rank = rank;
     }
 
+    public Square(char fileCh, int rank) {
+        this(char2file(fileCh), rank - 1);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj == this)

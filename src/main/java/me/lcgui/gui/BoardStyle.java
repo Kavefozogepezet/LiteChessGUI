@@ -68,11 +68,12 @@ public class BoardStyle {
         return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
-    public Image getPieceTexResized(Piece piece, Dimension size) {
-        return getPieceTexResized(piece.side, piece.type, size);
+    public Image getResizedPieceTexture(Piece piece, Dimension size) {
+        System.out.println("fetched texture with dimensions. " + size);
+        return getResizedPieceTexture(piece.side, piece.type, size);
     }
 
-    public Image getPieceTexResized(Side side, PieceType pieceType, Dimension size) {
+    public Image getResizedPieceTexture(Side side, PieceType pieceType, Dimension size) {
         Image cachedImg = cacheImgs[side.ordinal()][pieceType.ordinal()];
         if(cachedImg != null && cachedImg.getWidth(null) == size.width && cachedImg.getHeight(null) == size.height)
             return cachedImg;

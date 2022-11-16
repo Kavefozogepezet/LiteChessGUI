@@ -21,7 +21,7 @@ public abstract class AbstractBoard {
     }
 
     public void setPiece(Square square, Piece piece) {
-        if(piece != null && piece.type == PieceType.King)
+        if(square.valid() && piece != null && piece.type == PieceType.King)
             kings[piece.side.ordinal()] = square;
     }
 
@@ -103,12 +103,7 @@ public abstract class AbstractBoard {
         return checks[side.ordinal()];
     }
 
-    private void updateChecks() {
-        checks[Side.White.ordinal()] = isSqAttacked(kings[Side.White.ordinal()], Side.Black);
-        checks[Side.Black.ordinal()] = isSqAttacked(kings[Side.Black.ordinal()], Side.White);
-    }
-
-    private boolean isSqAttacked(Square sq, Side attacker) {
+    public boolean isSqAttacked(Square sq, Side attacker) {
         if(sq == null)
             return false;
 
@@ -145,5 +140,10 @@ public abstract class AbstractBoard {
         }
 
         return false;
+    }
+
+    private void updateChecks() {
+        checks[Side.White.ordinal()] = isSqAttacked(kings[Side.White.ordinal()], Side.Black);
+        checks[Side.Black.ordinal()] = isSqAttacked(kings[Side.Black.ordinal()], Side.White);
     }
 }

@@ -1,7 +1,6 @@
 package me.lcgui.gui;
 
 import me.lcgui.app.LiteChessGUI;
-import me.lcgui.app.Settings;
 import me.lcgui.audio.AudioFX;
 import me.lcgui.game.board.*;
 import me.lcgui.misc.ColorExt;
@@ -336,7 +335,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
             var size = getSize();
             if(quietPaint) {
-                var pieceImg = LiteChessGUI.style.getPieceTexResized(piece, size);
+                var pieceImg = LiteChessGUI.style.getResizedPieceTexture(piece, size);
                 g.drawImage(pieceImg, 0, 0, this);
             } else {
                 g.drawImage(LiteChessGUI.style.getPieceTexture(piece), 0, 0, size.width, size.height, this);

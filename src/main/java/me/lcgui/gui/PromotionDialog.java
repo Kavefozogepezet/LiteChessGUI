@@ -40,7 +40,7 @@ public class PromotionDialog {
         for(int i = 0; i < types.length; i++) {
             buttons[i] = new JButton(
                     new ImageIcon(
-                            LiteChessGUI.style.getPieceTexResized(
+                            LiteChessGUI.style.getResizedPieceTexture(
                                     side, types[i], dimension)));
             buttons[i].setMinimumSize(dimension);
             buttons[i].setPreferredSize(dimension);

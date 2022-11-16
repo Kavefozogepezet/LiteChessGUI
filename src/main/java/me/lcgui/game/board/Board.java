@@ -11,6 +11,9 @@ public class Board extends AbstractBoard implements Serializable {
 
     @Override
     public void setPiece(Square square, Piece piece) {
+        if(!square.valid())
+            throw new IllegalArgumentException("Square was invalid");
+
         super.setPiece(square, piece);
         squares[square.rank][square.file] = piece;
         charArray[square.linearIdx()] = piece.toChar();
@@ -22,6 +25,9 @@ public class Board extends AbstractBoard implements Serializable {
 
     @Override
     public void removePiece(Square square) {
+        if(!square.valid())
+            throw new IllegalArgumentException("Square was invalid.");
+
         super.removePiece(square);
         Piece piece = squares[square.rank][square.file];
         squares[square.rank][square.file] = null;
@@ -36,6 +42,8 @@ public class Board extends AbstractBoard implements Serializable {
 
     @Override
     public Piece getPiece(Square square) {
+        if(!square.valid())
+            throw new IllegalArgumentException("Square was invalid.");
         return squares[square.rank][square.file];
     }
 
