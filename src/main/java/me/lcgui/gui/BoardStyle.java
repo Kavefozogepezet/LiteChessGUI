@@ -9,6 +9,7 @@ import org.json.simple.parser.JSONParser;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.LinkedList;
 
@@ -39,8 +40,7 @@ public class BoardStyle {
 
     private String currentStyleName = "";
 
-    private final Image[][] imgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
-    private Image[][] cacheImgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
+    private final Image[][] imgs = new BufferedImage[Side.Count.ordinal()][PieceType.Count.ordinal()];
 
     // colors
     public Color baseLight = new Color(222, 189, 144);
@@ -68,28 +68,9 @@ public class BoardStyle {
         return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
-    public Image getResizedPieceTexture(Piece piece, Dimension size) {
-        System.out.println("fetched texture with dimensions. " + size);
-        return getResizedPieceTexture(piece.side, piece.type, size);
-    }
-
-    public Image getResizedPieceTexture(Side side, PieceType pieceType, Dimension size) {
-        Image cachedImg = cacheImgs[side.ordinal()][pieceType.ordinal()];
-        if(cachedImg != null && cachedImg.getWidth(null) == size.width && cachedImg.getHeight(null) == size.height)
-            return cachedImg;
-        else {
-            cacheImgs[side.ordinal()][pieceType.ordinal()] =
-                    getPieceTexture(side, pieceType)
-                            .getScaledInstance(size.width, size.height, Image.SCALE_AREA_AVERAGING);
-            return cacheImgs[side.ordinal()][pieceType.ordinal()];
-        }
-    }
-
     public void loadStyle(String styleName) {
         if(currentStyleName.equals(styleName))
             return;
-
-        cacheImgs = new Image[Side.Count.ordinal()][PieceType.Count.ordinal()];
 
         JSONParser parser = new JSONParser();
         File dir = new File(stylesDir, styleName);

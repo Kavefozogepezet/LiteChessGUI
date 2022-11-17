@@ -12,6 +12,7 @@ public class BoardTest {
     private Board board;
 
     private Move move;
+    private Move castle;
 
     @Before
     public void setUp() {
@@ -20,8 +21,11 @@ public class BoardTest {
         board.setPiece(Square.a2, Piece.WPawn);
         board.setPiece(Square.e1, Piece.WKing);
         board.setPiece(Square.e8, Piece.BKing);
+        board.setPiece(Square.h8, Piece.BRook);
         board.setPiece(Square.b3, Piece.BPawn);
+
         move = new Move(Square.a2, Square.b3, Piece.WPawn, Piece.BPawn);
+        castle = new Move(Square.e8, Square.g8, Piece.BKing, null, Move.CASTLE_K);
     }
 
     @Test
@@ -67,6 +71,12 @@ public class BoardTest {
         board.play(move);
         Assert.assertNull(board.getPiece(move.from));
         Assert.assertEquals(board.getPiece(move.to), move.moving);
+
+        board.play(castle);
+        Assert.assertNull(board.getPiece(Square.e8));
+        Assert.assertNull(board.getPiece(Square.h8));
+        Assert.assertEquals(board.getPiece(Square.f8), Piece.BRook);
+        Assert.assertEquals(board.getPiece(Square.g8), Piece.BKing);
     }
 
     @Test
@@ -75,6 +85,13 @@ public class BoardTest {
         board.unplay(move);
         Assert.assertEquals(move.captured, board.getPiece(move.to));
         Assert.assertEquals(move.moving, board.getPiece(move.from));
+
+        board.play(castle);
+        board.unplay(castle);
+        Assert.assertNull(board.getPiece(Square.f8));
+        Assert.assertNull(board.getPiece(Square.g8));
+        Assert.assertEquals(board.getPiece(Square.h8), Piece.BRook);
+        Assert.assertEquals(board.getPiece(Square.e8), Piece.BKing);
     }
 
     @Test

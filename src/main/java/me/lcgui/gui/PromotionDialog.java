@@ -1,6 +1,7 @@
 package me.lcgui.gui;
 
 import me.lcgui.app.LiteChessGUI;
+import me.lcgui.game.board.Piece;
 import me.lcgui.game.board.PieceType;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.board.Square;
@@ -35,16 +36,10 @@ public class PromotionDialog {
         panel.setLayout(new GridLayout(4, 1));
 
         PieceType[] types = { PieceType.Queen, PieceType.Rook, PieceType.Knight, PieceType.Bishop };
-        JButton[] buttons = new JButton[types.length];
+        PromotionButton[] buttons = new PromotionButton[types.length];
 
         for(int i = 0; i < types.length; i++) {
-            buttons[i] = new JButton(
-                    new ImageIcon(
-                            LiteChessGUI.style.getResizedPieceTexture(
-                                    side, types[i], dimension)));
-            buttons[i].setMinimumSize(dimension);
-            buttons[i].setPreferredSize(dimension);
-            buttons[i].setMaximumSize(dimension);
+            buttons[i] = new PromotionButton(side, types[i], dimension);
             panel.add(buttons[i]);
         }
 
@@ -72,5 +67,37 @@ public class PromotionDialog {
             if(move.getPromotionPiece().type == selected)
                 return move;
         throw new RuntimeException("Illegal promotion");
+    }
+
+    private class PromotionButton extends JButton {
+        private final Side side;
+        private final PieceType type;
+
+        public PromotionButton(Side side, PieceType type, Dimension dimension) {
+            this.type = type;
+            this.side = side;
+
+            setMinimumSize(dimension);
+            setPreferredSize(dimension);
+            setMaximumSize(dimension);
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            super.paint(g);
+
+            Graphics2D g2D = (Graphics2D) g;
+            var hints = g2D.getRenderingHints();
+
+            g2D.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            var size = getSize();
+            Image img = LiteChessGUI.style.getPieceTexture(side, type);
+            g2D.drawImage(img, 0, 0, size.width, size.height, this);
+
+            g2D.setRenderingHints(hints);
+        }
     }
 }

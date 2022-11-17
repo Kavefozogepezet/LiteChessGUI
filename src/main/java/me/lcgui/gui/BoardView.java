@@ -10,6 +10,7 @@ import me.lcgui.misc.Event;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -21,9 +22,6 @@ public class BoardView extends AbstractBoard implements GUICreator {
     public final Event<Square> clickEvent = new Event<>();
     private final SquareButton[][] squares = new SquareButton[BOARD_SIZE][BOARD_SIZE];
     private final JPanel GUIRoot = new JPanel();
-
-    private Timer quietTimer = null;
-    private boolean quietPaint = true;
 
     public BoardView() {
         createGUI();
@@ -179,35 +177,6 @@ public class BoardView extends AbstractBoard implements GUICreator {
                 return new Dimension(size, size);
             }
         };
-        container.addComponentListener(new ComponentAdapter() {
-            private void setQuiet() {
-                quietPaint = false;
-
-                if(quietTimer != null)
-                    quietTimer.cancel();
-
-                quietTimer = new Timer(true);
-                quietTimer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        quietPaint = true;
-                        container.repaint();
-                    }
-                }, 100L);
-            }
-
-            @Override
-            public void componentResized(ComponentEvent e) {
-                super.componentResized(e);
-                setQuiet();
-            }
-
-            @Override
-            public void componentMoved(ComponentEvent e) {
-                super.componentMoved(e);
-                setQuiet();
-            }
-        });
 
         // notation
         if(LiteChessGUI.settings.get(SHOW_COODDINATES, true)) {
@@ -333,13 +302,18 @@ public class BoardView extends AbstractBoard implements GUICreator {
             if(piece == null)
                 return;
 
+            Graphics2D g2D = (Graphics2D) g;
+            var hints = g2D.getRenderingHints();
+
+            g2D.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
             var size = getSize();
-            if(quietPaint) {
-                var pieceImg = LiteChessGUI.style.getResizedPieceTexture(piece, size);
-                g.drawImage(pieceImg, 0, 0, this);
-            } else {
-                g.drawImage(LiteChessGUI.style.getPieceTexture(piece), 0, 0, size.width, size.height, this);
-            }
+            Image img = LiteChessGUI.style.getPieceTexture(piece);
+            g2D.drawImage(img, 0, 0, size.width, size.height, this);
+
+            g2D.setRenderingHints(hints);
         }
 
         private class SquareMouseListener implements MouseListener {
@@ -353,6 +327,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
                 if(e.getButton() == MouseEvent.BUTTON1)
                     pressed = true;
             }
+
             @Override
             public void mouseReleased(MouseEvent e) {
                 if(e.getButton() == MouseEvent.BUTTON1 && pressed) {
@@ -360,8 +335,10 @@ public class BoardView extends AbstractBoard implements GUICreator {
                     clickEvent.invoke(mySquare);
                 }
             }
+
             @Override
             public void mouseEntered(MouseEvent e) {}
+
             @Override
             public void mouseExited(MouseEvent e) {
                 pressed = false;
