@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
+        <meta charset="utf-16">
         <meta name="author" content="Apostagi Bálint">
         <title>Lite Chess GUI - Lépés, a sakktábla kezelése</title>
     </head>
@@ -12,7 +12,31 @@
         </div>
         <main>
             <h1>Lépés, a sakktábla kezelése</h1>
-            <p>...</p>
+            <p>
+                A sakktáblát, és az eszköztárat használva léphet az aktuális partipan, léptetheti a játékállást, feladhatja a játszmát, vagy döntetlent igényelhet.
+            </p>
+            <h2>Lépés a sakktáblán</h2>
+            <p>
+                Ha emberi játékoson van a sor, hogy lépjen, a sakktáblára kattintva kiválaszthatóak az egyes figurák. Ekkor a figura alatt lévő mező elszíneződik. Ezzel egy időben azok a mezők is színt váltanak amelyekre ennek a figurának van legális lépése.
+            </p>
+            <img src="chessboard/move.png" alt="Hiányzik a sakktáblát ábrázoló kép.">
+            <p>
+                Ez után az egyik kijelölt mezőre kattintva választhatja ki, melyik lépést szeretné megtenni. Miután ezt megtette, a választott lépés kezdő és cél mezőinek színe változik meg (bal oldalt). Ez mindíg a legutolsó lépést jelöli. Ha a lépés sakk, vagy matt állást eredményezett, a király mezője is elszineződik (jobb oldalt).
+            </p>
+            <img src="chessboard/moved_and_check.png" alt="Hiányzik a lépést ábrázoló kép.">
+            <h2>Eszköztár használata</h2>
+            <img src="chessboard/toolbar.png" alt="Hiányzik az eszköztárat ábrázoló kép.">
+            <p>
+                Az eszközök ikonjai, és funkcióik:
+            </p>
+            <ul>
+                <li>⏮ : A játszma kezdőállásának megtekintése.</li>
+                <li>⏴ : Előző állás megtekintése</li>
+                <li>⏵ : Következő állás megtekintése</li>
+                <li>⏭ : Ugrás a játszma aktuális állásához</li>
+                <li>🏳 : Parti feladása</li>
+                <li>½ : Döntetlen igénylése - csak akkor aktív, ha arra a FIDE szabályok alapján joga van</li>
+            </ul>
         </main>
         <div>
             <hr>

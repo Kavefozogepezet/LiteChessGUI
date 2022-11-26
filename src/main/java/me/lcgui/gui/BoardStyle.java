@@ -6,6 +6,7 @@ import me.lcgui.game.board.Side;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -17,11 +18,11 @@ import java.util.LinkedList;
 public class BoardStyle {
     public static final String STYLE = "style";
 
-    public static String[] getAvailableStyles() {
+    public static String[] getAvailableStyles() throws StyleLoadingException {
         LinkedList<String> styleNames = new LinkedList<>();
         File[] files = stylesDir.listFiles();
         if(files == null)
-            throw new RuntimeException("Styles folder missing");
+            throw new StyleLoadingException("Styles missing");
 
         for(var file : files) {
             if(!file.isDirectory())
@@ -41,6 +42,8 @@ public class BoardStyle {
     private String currentStyleName = "";
 
     private final Image[][] imgs = new BufferedImage[Side.Count.ordinal()][PieceType.Count.ordinal()];
+
+    public Object textureInterpolation = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
     // colors
     public Color baseLight = new Color(222, 189, 144);
@@ -68,7 +71,7 @@ public class BoardStyle {
         return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
-    public void loadStyle(String styleName) {
+    public void loadStyle(String styleName) throws StyleLoadingException {
         if(currentStyleName.equals(styleName))
             return;
 
@@ -109,17 +112,30 @@ public class BoardStyle {
                     System.out.println("Loaded " + sides[sideIdx] + ' ' + pieces[pieceIdx] + ": " + pieceFile.getPath());
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+
+            if(obj.containsKey("texture_interpolation")) {
+                String iStr = (String) obj.get("texture_interpolation");
+                textureInterpolation = switch (iStr) {
+                    case "bilinear" -> RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+                    case "nearest" -> RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+                    default -> throw new StyleLoadingException("Interpolation mode not supported.");
+                };
+            }
+        } catch (FileNotFoundException e) {
+            throw new StyleLoadingException(styleName + ".json is missing");
+        } catch (IOException e) {
+            throw new StyleLoadingException(e);
+        } catch (ParseException e) {
+            throw new StyleLoadingException("Error while parsing the style's json file:\n" + e.getMessage());
         }
         currentStyleName = styleName;
     }
 
-    private void LoadImage(int sIdx, int pIdx, File file) {
+    private void LoadImage(int sIdx, int pIdx, File file) throws StyleLoadingException {
         try {
             imgs[sIdx][pIdx] = ImageIO.read(file);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new StyleLoadingException("Cannot load image: " + file.getPath());
         }
     }
 

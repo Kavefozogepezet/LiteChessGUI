@@ -8,8 +8,7 @@ import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
-import me.lcgui.player.Player;
-import me.lcgui.player.SelectablePlayer;
+import me.lcgui.game.player.Player;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -74,6 +73,7 @@ public class GameView implements GUICreator, MoveSupplier {
         boardView.clearAllHighlight();
         this.game = game;
         moveItr = game.getMoveList().listIterator(game.getMoveList().size());
+        followGame = true;
 
         this.game.moveEvent.addListener(onMovePlayed);
         this.game.endEvent.addListener(onGameEnd);
@@ -232,7 +232,6 @@ public class GameView implements GUICreator, MoveSupplier {
     }
 
     private final Event.Listener<Game.MoveData> onMovePlayed = (Game.MoveData moveData) -> {
-        System.out.println(game.getState().getPly() + " " + moveData.SAN);
         SwingUtilities.invokeLater(() -> {
             playersBars[0].setTime(game.getClock());
             playersBars[1].setTime(game.getClock());

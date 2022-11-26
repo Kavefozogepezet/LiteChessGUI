@@ -8,20 +8,16 @@ import me.lcgui.engine.ProtocolImplementation;
 import me.lcgui.gui.BoardStyle;
 import me.lcgui.gui.BoardView;
 import me.lcgui.gui.LCGUIWindow;
-import me.lcgui.player.HumanPlayer;
-import me.lcgui.player.SelectablePlayer;
+import me.lcgui.gui.StyleLoadingException;
+import me.lcgui.game.player.HumanPlayer;
+import me.lcgui.gui.SelectablePlayer;
 import org.reflections.Reflections;
 
 import javax.swing.*;
-import javax.swing.plaf.metal.MetalLookAndFeel;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LiteChessGUI {
     public static final Set<SelectablePlayer> players = new HashSet<>();
@@ -48,10 +44,12 @@ public class LiteChessGUI {
 
         try {
             UIManager.setLookAndFeel(new FlatDarkLaf());
+            style.loadStyle(BoardStyle.defaultStyle);
         } catch (UnsupportedLookAndFeelException e) {
+            System.err.println("Lite Chess GUI's default look and feel is unsupported on this platform.");
+        } catch (StyleLoadingException e) {
             throw new RuntimeException(e);
         }
-        style.loadStyle(BoardStyle.defaultStyle);
 
         loadSettings();
 
@@ -82,8 +80,13 @@ public class LiteChessGUI {
             engineManager = (EngineManager) stream.readObject();
 
             style.loadStyle(settings.get(BoardStyle.STYLE, BoardStyle.defaultStyle));
-        } catch (Exception ignore) {
-            throw new RuntimeException("Failed to load settings file");
+        } catch (FileNotFoundException ignored) {}
+        catch (IOException | ClassNotFoundException e) {
+            settingsFile.delete();
+        } catch (StyleLoadingException e) {
+            JOptionPane.showMessageDialog(
+                    null, e.getMessage(),
+                    "Failed to load style", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -99,7 +102,7 @@ public class LiteChessGUI {
     }
 
     private static void initPlayers() {
-        Reflections reflections = new Reflections("me.lcgui.player");
+        Reflections reflections = new Reflections("me.lcgui.game.player");
         var set = reflections.getTypesAnnotatedWith(SelectablePlayer.class);
         set.forEach((c) -> players.add(c.getAnnotation(SelectablePlayer.class)));
     }

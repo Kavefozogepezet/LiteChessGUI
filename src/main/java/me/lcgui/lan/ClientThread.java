@@ -31,8 +31,10 @@ public class ClientThread extends NetworkThread {
 
             address = packet.getAddress();
             Thread.sleep(1000);
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            return;
         }
 
         try (
@@ -40,6 +42,7 @@ public class ClientThread extends NetworkThread {
         ) {
             setSocket(socket);
             System.out.println("successful pairing with:\n\tipv4:\t" + address.getHostAddress() + "\n\tport:\t" + port);
+            synchronized (this) { notifyAll(); }
             beginReading();
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,17 +1,14 @@
-package me.lcgui.player;
+package me.lcgui.game.player;
 
 import me.lcgui.app.LiteChessGUI;
-import me.lcgui.app.Settings;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.movegen.Move;
-import me.lcgui.gui.LCGUIWindow;
 import me.lcgui.gui.MoveSupplier;
+import me.lcgui.gui.SelectablePlayer;
 import me.lcgui.gui.factory.HumanPlayerFactory;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
-
-import java.io.Serializable;
 
 @SelectablePlayer(name = "Human", factoryClass = HumanPlayerFactory.class, canUseGUI = true)
 public class HumanPlayer implements Player {

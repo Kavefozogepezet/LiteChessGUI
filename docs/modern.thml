@@ -1,0 +1,29 @@
+<pre>
+{
+	<span class="key">"board"</span>: {
+		<span class="key">"light"</span>: [<span class="num">203</span>, <span class="num">219</span>, <span class="num">219</span>],
+		<span class="key">"dark"</span>: [<span class="num">137</span>, <span class="num">161</span>, <span class="num">193</span>],
+		<span class="key">"check"</span>: [<span class="num">255</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">128</span>],
+		<span class="key">"piece_left"</span>: [<span class="num">174</span>, <span class="num">216</span>, <span class="num">0</span>, <span class="num">132</span>],
+		<span class="key">"piece_arrived"</span>: [<span class="num">174</span>, <span class="num">216</span>, <span class="num">0</span>, <span class="num">132</span>],
+		<span class="key">"selected"</span>: [<span class="num">0</span>, <span class="num">135</span>, <span class="num">99</span>, <span class="num">160</span>],
+		<span class="key">"destination"</span>: [<span class="num">0</span>, <span class="num">229</span>, <span class="num">168</span>, <span class="num">140</span>]
+	},
+	<span class="key">"white"</span>: {
+		<span class="key">"king"</span>: <span class="str">"white.king"</span>,
+		<span class="key">"queen"</span>: <span class="str">"white.queen"</span>,
+		<span class="key">"bishop"</span>: <span class="str">"white.bishop"</span>,
+		<span class="key">"knight"</span>: <span class="str">"white.knight"</span>,
+		<span class="key">"rook"</span>: <span class="str">"white.rook"</span>,
+		<span class="key">"pawn"</span>: <span class="str">"white.pawn"</span>
+	},
+	<span class="key">"black"</span>: {
+		<span class="key">"king"</span>: <span class="str">"black.king"</span>,
+		<span class="key">"queen"</span>: <span class="str">"black.queen"</span>,
+		<span class="key">"bishop"</span>: <span class="str">"black.bishop"</span>,
+		<span class="key">"knight"</span>: <span class="str">"black.knight"</span>,
+		<span class="key">"rook"</span>: <span class="str">"black.rook"</span>,
+		<span class="key">"pawn"</span>: <span class="str">"black.pawn"</span>
+	}
+}
+</pre>

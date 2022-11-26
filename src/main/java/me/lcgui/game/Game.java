@@ -11,7 +11,7 @@ import me.lcgui.game.setup.FEN;
 import me.lcgui.game.setup.GameSetup;
 import me.lcgui.game.setup.StartPos;
 import me.lcgui.misc.Event;
-import me.lcgui.player.Player;
+import me.lcgui.game.player.Player;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,7 +40,7 @@ public class Game implements Serializable {
         NORMAL, FORFEIT, TIME_FORFEIT, ABANDONED
     }
 
-    public static class ResultData {
+    public static class ResultData implements Serializable {
         public final Result result;
         public final Termination termination;
 
@@ -94,25 +94,31 @@ public class Game implements Serializable {
     public transient Event<ResultData> endEvent = new Event<>();
     public transient Event<Clock> tickEvent = new Event<>();
 
-    public Game(GameSetup setup) {
+    public Game(GameSetup setup) throws IncorrectNotationException {
         setup.set(this);
         possibleMoves.generate();
+        recordPos();
     }
 
-    public Game(GameSetup setup, Clock.Format format) {
+    public Game(GameSetup setup, Clock.Format format) throws IncorrectNotationException {
         this(setup);
         this.clock = new Clock(format, state.getTurn());
         clock.tickEvent.addListener((side) -> tickEvent.invoke(this.clock));
         clock.outOfTimeEvent.addListener((side) -> endGame(Result.lost(side), Termination.TIME_FORFEIT));
-        recordPos();
     }
 
     public Game(Clock.Format format) {
-        this(new StartPos(), format);
+        this();
+        this.clock = new Clock(format, state.getTurn());
+        clock.tickEvent.addListener((side) -> tickEvent.invoke(this.clock));
+        clock.outOfTimeEvent.addListener((side) -> endGame(Result.lost(side), Termination.TIME_FORFEIT));
     }
 
     public Game() {
-        this(new StartPos());
+        StartPos setup = new StartPos();
+        setup.set(this);
+        possibleMoves.generate();
+        recordPos();
     }
 
     public void startGame() {
@@ -179,6 +185,10 @@ public class Game implements Serializable {
     }
     public Termination getTermination() {
         return result.termination;
+    }
+
+    public ResultData getResultData() {
+        return result;
     }
 
     public synchronized boolean isValidMove(Move move) {

@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="author" content="Apostagi Bálint">
-        <title>Lite Chess GUI - ...</title>
+        <title>Lite Chess GUI - Sakk engine-ek az alkalmazásban</title>
     </head>
     <body>
         <div>
@@ -11,7 +11,34 @@
             <hr>    
         </div>
         <main>
-            ...
+            <h1>Sakk engine-ek az alkalmazásban</h1>
+            <p>
+                Az Engines menüpont alatt megtalálja az "Install Engine" és a "Manage Engines" alpontokat.
+            </p>
+            <img src="engines/engines_menu.png" alt="Hiányzik az almenüket ábrázoló kép.">
+            <h2>Install Engine</h2>
+            <p>
+                A felugró ablakban kiválaszthatja a használandó protokollt, és az engine futtatható állományát. Az állomány elérési helyét manuálisan is megadhatja, vagy a mező melletti mappa ikonra kattintva egy fájlválasztóban is kiválaszthatja. Az OK gombra kattintva az alkalmazás megkezdi az engine konfigurását, és telepítését az alkalmazásba. Ez után ez az engine meg fog jelenni a választható játékosok között.
+            </p>
+            <img src="engines/install_dialog.png" alt="Hiányzik a telepítési dialógust ábrázoló kép.">
+            <h2>Manage Engines</h2>
+            <p>
+                Erre az opcióra kattintva felugrik egy ablak, amelyben az engine-ek beállításait változtathatja. A beállítások nem érvényesülnek azonnal, csak akkor, amikor az engine legközelebb elindul. Bal oldali fülekre kattintva kiválaszthatja melyik engine beállításait szeretné változtatni. A választott engine beállításai egy három oszlopos táblázatban jelennek meg, melyek rendre a beállítás neve, típusa, és értéke.
+            </p>
+            <p>
+                A beállítások típusai a következők lehetnek: 
+            </p>
+            <ul>
+                <li>Button: Mint egy gomb, a funkció egyszeri végrehajtását eredményezi</li>
+                <li>Check: Ki/Be kapcsolható funkció</li>
+                <li>String: Szöveges paraméter, gyakran fájl elérési utat jelöl</li>
+                <li>Combo: Előre meghatározott értékekre állítható paraméter</li>
+                <li>Spin(min, max): Egész szám, melynek minimuma és maximuma a zárójelben szerepel</li>
+            </ul>
+            <p>
+                Az ablak alján lévő Reset gombbal az engine beállításait alapállapotba helyezheti. Az uninstall gomb megnyomására az alkalmazás törli az engine-t a memóriájából, így ezzel már nem tud a jövőben partikat játszani. A tárhelyen lévő fájlokhoz az alkalmazás nem nyúl, az engine akár mikor újra installálható.
+            </p>
+            <img src="engines/manage_dialog.png" alt="Hiányzik a beállítás dialógust ábrázoló kép.">
         </main>
         <div>
             <hr>

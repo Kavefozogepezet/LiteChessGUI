@@ -19,12 +19,13 @@ public enum Piece {
     }
     public static Piece fromChar(char ch) {
         final Piece[][] pieceTable = {
-                { WKing, WQueen, WBishop, WKnight, WRook, WPawn },
-                { BKing, BQueen, BBishop, BKnight, BRook, BPawn }
+                { WKing, WQueen, WBishop, WKnight, WRook, WPawn, null },
+                { BKing, BQueen, BBishop, BKnight, BRook, BPawn, null }
         };
         int sIdx = Character.isUpperCase(ch) ? 0 : 1;
-        int pIdx = 0;
+        int pIdx = 6;
         switch (Character.toLowerCase(ch)) {
+            case 'k' -> pIdx = 0;
             case 'q' -> pIdx = 1;
             case 'b' -> pIdx = 2;
             case 'n' -> pIdx = 3;

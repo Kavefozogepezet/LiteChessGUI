@@ -6,6 +6,7 @@ import me.lcgui.misc.Event;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.LinkedList;
 
@@ -62,12 +63,7 @@ public class Clock implements Serializable {
     private final int[] used = new int[2]; // time used since last move
     private Side clockState = Side.White;
     public final Format format;
-    private final Timer timer = new Timer(100, new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            reduceTime();
-        }
-    });
+    private transient Timer timer = new Timer(100, e -> reduceTime());
 
     public Clock(Format format, Side side2move) {
         this.format = format;
@@ -167,5 +163,11 @@ public class Clock implements Serializable {
         }
 
         return timeStr.toString();
+    }
+
+    @Serial
+    private Object readResolve() {
+        this.timer = new Timer(100, e -> reduceTime());
+        return this;
     }
 }

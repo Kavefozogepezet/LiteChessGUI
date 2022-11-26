@@ -4,16 +4,10 @@ import me.lcgui.engine.args.*;
 import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
-import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
 import me.lcgui.misc.Consumable;
-import me.lcgui.misc.Event;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Scanner;
 
 @ProtocolImplementation(name = "UCI")
 public class UCIEngine extends AbstractEngine {

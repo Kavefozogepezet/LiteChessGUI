@@ -1,30 +1,28 @@
 package me.lcgui.gui;
 
-import com.sun.jdi.Method;
 import me.lcgui.app.LiteChessGUI;
-import me.lcgui.engine.Engine;
-import me.lcgui.engine.EngineConfig;
-import me.lcgui.engine.EngineManager;
+import me.lcgui.engine.*;
 import me.lcgui.game.Game;
+import me.lcgui.game.IncorrectNotationException;
 import me.lcgui.game.board.Side;
+import me.lcgui.game.player.HumanPlayer;
+import me.lcgui.game.player.LANPlayer;
+import me.lcgui.game.player.Player;
 import me.lcgui.game.setup.FEN;
 import me.lcgui.game.setup.PGN;
 import me.lcgui.lan.ClientThread;
 import me.lcgui.misc.FileInputField;
-import me.lcgui.player.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -33,7 +31,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class LCGUIWindow extends JFrame {
     private static final BufferedImage icon;
@@ -60,6 +57,8 @@ public class LCGUIWindow extends JFrame {
 
     private final JTabbedPane tabs = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     private final MoveListPanel moveList = new MoveListPanel();
+
+    private JFrame docFrame = null;
 
     public LCGUIWindow() {
         super("Lite Chess GUI");
@@ -313,11 +312,19 @@ public class LCGUIWindow extends JFrame {
             PGN pgn = new PGN(pgnStr);
             Game game = new Game(pgn);
             newGame(game);
-        } catch (Exception ex) {
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(
+                    null, "Cannot access clipboard",
+                    "Import PGN", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(ex);
+        } catch (IncorrectNotationException ex) {
             JOptionPane.showMessageDialog(
                     null, "Failed to import PGN:\n" + ex.getMessage(),
                     "Import PGN", JOptionPane.ERROR_MESSAGE);
-            throw new RuntimeException(ex);
+        } catch (UnsupportedFlavorException ex) {
+            JOptionPane.showMessageDialog(
+                    null, "Clipboard did not contain a string",
+                    "Import PGN", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -380,10 +387,15 @@ public class LCGUIWindow extends JFrame {
                         null, name + " is successfully installed.",
                         "Installation successful", JOptionPane.INFORMATION_MESSAGE
                 );
-            } catch (Exception ex) {
+            } catch (EngineVerificationFailure ex) {
                 JOptionPane.showMessageDialog(
                         null, ex.getMessage(),
                         "Installation failed", JOptionPane.ERROR_MESSAGE
+                );
+            } catch (EngineAlreadyInstalledException ex) {
+                JOptionPane.showMessageDialog(
+                        null, ex.getEngineName() + " is already installed",
+                        "Installation cancelled", JOptionPane.INFORMATION_MESSAGE
                 );
             }
         }
@@ -405,9 +417,10 @@ public class LCGUIWindow extends JFrame {
             JPanel panel = new JPanel();
             panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 
-            JPanel options = new JPanel(new GridLayout(config.options.size(), 2));
+            JPanel options = new JPanel(new GridLayout(config.options.size(), 3));
             for(var option : config.options.values()) {
                 options.add(new JLabel(option.getName()));
+                options.add(new JLabel(option.getType()));
                 var provider = new ArgComponentProvider(option);
                 options.add(provider.getRootComponent());
             }
@@ -472,22 +485,24 @@ public class LCGUIWindow extends JFrame {
         showMoves.setState(LiteChessGUI.settings.get(BoardView.SHOW_POSSIBLE_MOVES, true));
         showMoves.addActionListener((l) -> {
             LiteChessGUI.settings.set(BoardView.SHOW_POSSIBLE_MOVES, showMoves.getState());
-            gameView.getBoardView().getRootComponent().repaint();
+            gameView.getBoardView().updateStyle();
         });
 
         JCheckBoxMenuItem showInfo = new JCheckBoxMenuItem("Show Square Info");
         showInfo.setState(LiteChessGUI.settings.get(BoardView.SHOW_SQUARE_INFO, true));
         showInfo.addActionListener((l) -> {
             LiteChessGUI.settings.set(BoardView.SHOW_SQUARE_INFO, showInfo.getState());
-            gameView.getBoardView().getRootComponent().repaint();
+            gameView.getBoardView().updateStyle();
         });
 
         JMenu styles = new JMenu("Select Style");
-        for(String styleName : BoardStyle.getAvailableStyles()) {
-            var item = new JMenuItem(styleName);
-            item.addActionListener(new StyleLoader(styleName));
-            styles.add(item);
-        }
+        try {
+            for(String styleName : BoardStyle.getAvailableStyles()) {
+                var item = new JMenuItem(styleName);
+                item.addActionListener(new StyleLoader(styleName));
+                styles.add(item);
+            }
+        } catch (StyleLoadingException ignore) {}
 
         prefs.add(engineLog);
         prefs.add(autoDraw);
@@ -515,7 +530,19 @@ public class LCGUIWindow extends JFrame {
     }
 
     private void onHelp(ActionEvent e) {
-        JFrame docFrame = new JFrame("Lite Chess GUI Documentation");
+        if(docFrame != null) {
+            docFrame.toFront();
+            docFrame.requestFocus();
+            return;
+        }
+
+        docFrame = new JFrame("Lite Chess GUI Documentation");
+        docFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                docFrame = null;
+            }
+        });
 
         JEditorPane docPane = new JEditorPane();
         Consumer<URL> setPage = (URL url) -> {
@@ -591,10 +618,10 @@ public class LCGUIWindow extends JFrame {
                 LiteChessGUI.style = newStyle;
                 gameView.getBoardView().updateStyle();
                 LiteChessGUI.settings.set(BoardStyle.STYLE, styleName);
-            } catch (RuntimeException ex) {
+            } catch (StyleLoadingException ex) {
                 JOptionPane.showMessageDialog(
-                        null, "Failed to load style.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                        null, ex.getMessage(),
+                        "Failed to load Style", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

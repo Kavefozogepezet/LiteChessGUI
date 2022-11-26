@@ -27,7 +27,10 @@ public abstract class AbstractArg<Type> implements Serializable {
     public boolean isDefault() {
         return dValue.equals(value);
     }
-    public void reset() { value = dValue; }
+    public void reset() {
+        value = dValue;
+        changedEvent.invoke(value);
+    }
 
     public Type getValue() {
         return value;
@@ -44,6 +47,8 @@ public abstract class AbstractArg<Type> implements Serializable {
     public String getName() {
         return name;
     }
+
+    public abstract String getType();
 
     @Override
     public String toString() {

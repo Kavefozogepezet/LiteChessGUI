@@ -67,7 +67,7 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
 
         arg.changedEvent.addListener(str -> {
             if(!str.equals(field.getText()))
-                arg.setValue(field.getText());
+                field.setText(str);
         });
 
         component = field;
@@ -84,7 +84,7 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
 
         arg.changedEvent.addListener(str -> {
             if(!str.equals(combo.getSelectedItem()))
-                arg.setValue((String) combo.getSelectedItem());
+                combo.setSelectedItem(str);
         });
 
         component = combo;
@@ -94,6 +94,7 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
     public void createGUIObject(Args.Spin arg) {
         var field = new JFormattedTextField(NumberFormat.getNumberInstance());
         field.setText(Integer.toString(arg.getValue()));
+
         field.addActionListener((a) -> {
             boolean reset = false;
             try {
@@ -106,6 +107,20 @@ public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
             if (reset)
                 field.setText(Integer.toString(arg.getValue()));
         });
+
+        arg.changedEvent.addListener(str -> {
+            boolean reset = false;
+            try {
+                int parsed = Integer.parseInt(field.getText());
+                reset = parsed != arg.getValue();
+            } catch (Exception e) {
+                reset = true;
+            }
+
+            if(reset)
+                field.setText(Integer.toString(arg.getValue()));
+        });
+
         component = field;
     }
 }

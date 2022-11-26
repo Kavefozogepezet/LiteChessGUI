@@ -1,8 +1,9 @@
 package me.lcgui.gui.factory;
 
 import me.lcgui.gui.DrawableFactory;
+import me.lcgui.gui.FactoryException;
 import me.lcgui.lan.ServerThread;
-import me.lcgui.player.LANPlayer;
+import me.lcgui.game.player.LANPlayer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +17,7 @@ public class LANPlayerFactory implements DrawableFactory<LANPlayer> {
     }
 
     @Override
-    public LANPlayer instantiate() {
+    public LANPlayer instantiate() throws FactoryException {
         JOptionPane pane = new JOptionPane(
                 "Waiting for a player to connect...",
                 JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new String[] { "Cancel"}, "Cancel" );
@@ -41,10 +42,10 @@ public class LANPlayerFactory implements DrawableFactory<LANPlayer> {
         if(JOptionPane.UNINITIALIZED_VALUE.equals(input)) {
             if(!thread.isConnected()) {
                 thread.interrupt();
-                throw new RuntimeException("Failed to connect");
+                throw new FactoryException("Failed to connect to a client.");
             }
         } else {
-            throw new RuntimeException("Connection cancelled");
+            throw new FactoryException("Connection cancelled.");
         }
         return player;
     }

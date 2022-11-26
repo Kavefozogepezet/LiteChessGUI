@@ -1,12 +1,9 @@
 package me.lcgui.misc;
 
-import javax.swing.*;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.EventListener;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.function.Consumer;
 
 public class Event<Type> implements Serializable {
     public interface Listener<Type> extends Serializable, EventListener {

@@ -41,7 +41,8 @@ public abstract class NetworkThread extends Thread {
     public void close() {
         try {
             socket.close();
-            connectionCallback.accept(State.SHUT_DOWN);
+            state = State.SHUT_DOWN;
+            invokeConnectionCallback();
         } catch (IOException ignore) {}
     }
 

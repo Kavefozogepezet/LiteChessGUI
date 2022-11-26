@@ -1,5 +1,6 @@
-package me.lcgui.player;
+package me.lcgui.gui;
 
+import me.lcgui.game.player.Player;
 import me.lcgui.gui.DrawableFactory;
 
 import java.lang.annotation.Retention;

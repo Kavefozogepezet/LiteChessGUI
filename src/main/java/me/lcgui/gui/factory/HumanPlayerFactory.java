@@ -2,12 +2,10 @@ package me.lcgui.gui.factory;
 
 import me.lcgui.app.LiteChessGUI;
 import me.lcgui.gui.DrawableFactory;
-import me.lcgui.gui.LCGUIWindow;
-import me.lcgui.player.HumanPlayer;
+import me.lcgui.game.player.HumanPlayer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.LinkedList;
 
 public class HumanPlayerFactory implements DrawableFactory<HumanPlayer> {
     private final JPanel panel = new JPanel();

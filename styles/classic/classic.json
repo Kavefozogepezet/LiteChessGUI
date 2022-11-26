@@ -1,12 +1,12 @@
 {
     "board": {
-        "light": [222, 189, 144],
-        "dark": [189, 122, 67],
+        "light": [221, 187, 141],
+        "dark": [173, 127, 90],
         "check": [255, 0, 0, 128],
-        "piece left": [255, 179, 0, 128],
-        "piece arrived": [255, 179, 0, 128],
-        "selected": [0, 72, 17, 128],
-        "destination": [0, 255, 50, 128]
+        "piece_left": [255, 183, 15, 128],
+        "piece_arrived": [255, 183, 15, 128],
+        "selected": [0, 73, 44, 182],
+        "destination": [0, 206, 123, 128]
     },
     "white": {
         "king": "pieces.white_king",
@@ -23,5 +23,6 @@
         "knight": "pieces.black_knight",
         "rook": "pieces.black_rook",
         "pawn": "pieces.black_pawn"
-    }
+    },
+    "texture_interpolation": "bilinear"
 }

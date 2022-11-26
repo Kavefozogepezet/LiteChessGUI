@@ -26,6 +26,11 @@ public class Args {
         public void accept(ArgGUIProvider guiProvider) {
             guiProvider.createGUIObject(this);
         }
+
+        @Override
+        public String getType() {
+            return "Check";
+        }
     }
 
     public static class Button
@@ -48,6 +53,11 @@ public class Args {
         @Override
         public String toString() {
             return "";
+        }
+
+        @Override
+        public String getType() {
+            return "Button";
         }
     }
 
@@ -72,6 +82,11 @@ public class Args {
         @Override
         public String toString() {
             return value;
+        }
+
+        @Override
+        public String getType() {
+            return "String";
         }
     }
 
@@ -99,18 +114,24 @@ public class Args {
         public ArrayList<String> getOptions() {
             return options;
         }
+
+        @Override
+        public String getType() {
+            return "Combo";
+        }
     }
 
     public static class Spin
             extends AbstractArg<Integer>
             implements Serializable
     {
-        private final int min, max;
+        private final int  min, max;
 
         public Spin(String name, int min, int max, int value) {
             super(name, value);
             this.min = min;
             this.max = max;
+            setValue(value);
         }
 
         @Override
@@ -135,6 +156,11 @@ public class Args {
 
         public int getMax() {
             return max;
+        }
+
+        @Override
+        public String getType() {
+            return "Spin(" + min + ", " + max + ")";
         }
     }
 }

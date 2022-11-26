@@ -4,10 +4,10 @@ import me.lcgui.app.LiteChessGUI;
 import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
+import me.lcgui.game.player.Player;
 import me.lcgui.game.setup.FEN;
 import me.lcgui.game.setup.GameSetup;
 import me.lcgui.game.setup.StartPos;
-import me.lcgui.player.*;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -64,7 +64,7 @@ public class GameSettingsDialog {
                     String fen = (String) clipboard.getData(flavor);
                     setup = new FEN(fen);
                 } catch (Exception e) {
-                    throw new RuntimeException("Couldn't read FEN from clipboard");
+                    throw new Exception("Couldn't read FEN from clipboard");
                 }
             }
         }
@@ -160,7 +160,7 @@ public class GameSettingsDialog {
                     DrawableFactory<? extends Player> factory = annot.factoryClass().getDeclaredConstructor().newInstance();
                     map.put(annot.name(), factory);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    System.err.println(e.getMessage());
                 }
             }
             return map;

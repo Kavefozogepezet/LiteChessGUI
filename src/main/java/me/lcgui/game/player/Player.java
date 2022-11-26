@@ -1,4 +1,4 @@
-package me.lcgui.player;
+package me.lcgui.game.player;
 
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;

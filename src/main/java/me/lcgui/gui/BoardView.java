@@ -149,7 +149,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
     @Override
     public Component createGUI() {
-        GUIRoot.removeAll(); // if being recreated, remove previous GUI
+        GUIRoot.removeAll();
         GUIRoot.setLayout(new GridBagLayout());
 
         int gridOffset = LiteChessGUI.settings.get(SHOW_COODDINATES, true) ? 1 : 0;
@@ -280,18 +280,21 @@ public class BoardView extends AbstractBoard implements GUICreator {
                     LiteChessGUI.style.baseLight :
                     LiteChessGUI.style.baseDark;
 
-            if(moveState == SqMoveHL.None) {
-                switch (infoState) {
-                    case None -> setBackground(baseColor);
-                    case Checked -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihCheck));
-                    case Moved -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihMoved));
-                    case Arrived -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihArrived));
-                }
-            }else {
+            if(moveState != SqMoveHL.None
+                    && LiteChessGUI.settings.get(SHOW_POSSIBLE_MOVES, true)) {
                 switch(moveState) {
                     case Move -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqmhMove));
                     case Selected -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqmhSelected));
                 }
+            } else if(infoState != SqInfoHL.None
+                    && LiteChessGUI.settings.get(SHOW_SQUARE_INFO, true)) {
+                switch (infoState) {
+                    case Checked -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihCheck));
+                    case Moved -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihMoved));
+                    case Arrived -> setBackground(ColorExt.overlay(baseColor, LiteChessGUI.style.sqihArrived));
+                }
+            } else {
+                setBackground(baseColor);
             }
         }
 
@@ -307,7 +310,7 @@ public class BoardView extends AbstractBoard implements GUICreator {
 
             g2D.setRenderingHint(
                     RenderingHints.KEY_INTERPOLATION,
-                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                    LiteChessGUI.style.textureInterpolation);
 
             var size = getSize();
             Image img = LiteChessGUI.style.getPieceTexture(piece);

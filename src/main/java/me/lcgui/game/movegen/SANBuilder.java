@@ -26,6 +26,11 @@ public class SANBuilder {
         if(move.moving.type == PieceType.Pawn) {
             if(move.isCapture())
                 SAN.insert(0, Square.file2char(move.from.file));
+            if(move.isPromotion()) {
+                char p = move.getPromotionPiece().type.toChar();
+                p = Character.toUpperCase(p);
+                SAN.append('=').append(p);
+            }
         } else if(move.moving.type == PieceType.King) {
             canCheck = false;
             SAN.insert(0, PieceType.King.toString().toUpperCase());

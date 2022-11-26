@@ -1,21 +1,13 @@
-package me.lcgui.player;
+package me.lcgui.game.player;
 
-import jdk.jshell.spi.ExecutionControl;
-import me.lcgui.app.LiteChessGUI;
 import me.lcgui.engine.Engine;
-import me.lcgui.engine.EngineManager;
-import me.lcgui.engine.EngineVerificationFailure;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
-import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
+import me.lcgui.gui.SelectablePlayer;
 import me.lcgui.gui.factory.EnginePlayerFactory;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
-
-import javax.swing.*;
-import java.io.Serial;
-import java.io.Serializable;
 
 @SelectablePlayer(name = "Engine", factoryClass = EnginePlayerFactory.class)
 public class EnginePlayer implements Player {

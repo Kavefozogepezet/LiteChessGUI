@@ -2,7 +2,6 @@ package me.lcgui.engine;
 
 import me.lcgui.game.Game;
 import me.lcgui.gui.MoveSupplier;
-import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 
 public interface Engine extends Runnable, MoveSupplier {

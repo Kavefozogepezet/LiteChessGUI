@@ -1,14 +1,13 @@
 package me.lcgui.gui.factory;
 
-import jdk.jshell.spi.ExecutionControl;
 import me.lcgui.app.LiteChessGUI;
 import me.lcgui.engine.Engine;
 import me.lcgui.engine.EngineVerificationFailure;
 import me.lcgui.gui.DrawableFactory;
-import me.lcgui.player.EnginePlayer;
+import me.lcgui.gui.FactoryException;
+import me.lcgui.game.player.EnginePlayer;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 
 public class EnginePlayerFactory implements DrawableFactory<EnginePlayer> {
@@ -20,10 +19,15 @@ public class EnginePlayerFactory implements DrawableFactory<EnginePlayer> {
     }
 
     @Override
-    public EnginePlayer instantiate() throws EngineVerificationFailure {
-        String engineName = (String) engineOptions.getSelectedItem();
-        Engine engine = LiteChessGUI.engineManager.getInstance(engineName);
-        return new EnginePlayer(engine);
+    public EnginePlayer instantiate() throws FactoryException {
+        try {
+            String engineName = (String) engineOptions.getSelectedItem();
+            Engine engine = null;
+            engine = LiteChessGUI.engineManager.getInstance(engineName);
+            return new EnginePlayer(engine);
+        } catch (EngineVerificationFailure e) {
+            throw new FactoryException(e);
+        }
     }
 
     @Override

@@ -29,10 +29,12 @@ public class ServerThread extends NetworkThread {
             } while(!connectionFound);
         } catch (IOException e) {
             setState(State.FAILED);
+            return;
         }
 
         try (Socket socket = getSocket()) {
             System.out.println("successful pairing with:\n\tipv4:\t" + socket.getInetAddress() + "\n\tport:\t" + socket.getPort());
+            synchronized (this) { notifyAll(); }
             beginReading();
         } catch (IOException e) {
             setState(State.DISCONNECTED);

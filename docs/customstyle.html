@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="author" content="Apostagi Bálint">
+        <title>Lite Chess GUI - Saját stílusok készítése.</title>
+        <style>
+            .key {
+                color: #87cefa;
+            }
+            .num {
+                color: #9acd32;
+            }
+            .str {
+                color: #ffa07a;
+            }
+            pre {
+                border: 1px solid white;
+                padding: 16px 0px 16px 0px;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <a href="index.html" class="home_button">&lt; Vissza a főoldalra</a>
+            <hr>    
+        </div>
+        <main>
+            <h2>Saját stílusok készítése.</h2>
+            <h3>Előkészüetek</h3>
+            <p>
+                Nyissa meg a mappát, ahova a Lite Chess GUI-t telepítette. Saját stílus készítéséhez hozzon létre egy új alkönyvtárat a styles mappában. A mappa elnevezése fog megjelenni az alkalmazásban, mint a stílusa neve. Ez után a mappában hozzon létre egy új JSON fájlt, melynek neve egyezzen meg a mappájéval (például a "mystyle" mappában "mystyle.json").
+            </p>
+            <h3>Stílus fájl elkészítése</h3>
+            <p>
+                Ha nem ismerné a JSON fájl felépítését, ajánlott előbb <a href="https://en.wikipedia.org/wiki/JSON">ezt az oldalt</a> elolvasnia.
+            </p>
+            <p>
+                A stílus JSON fájljában a tábla színeit és a bábukat ábrázoló képek elérési útját kell megadnia. Három fő objektumnak mindenképp szerepelnie kell a fájlban ezek a "board", "white", és "black" objektumok. Ezen felül megadhatja az opcionális "texture_interpolation" értékét.
+            </p>
+            <h3>board</h3>
+            <p>
+                Ebben az objektumban adhatja meg a tábla szinezését. Az objektumban ezek a kulcsok szerepeljenek:
+            </p>
+            <p>
+                Az alábbi kulcsokhoz 3 elemű tömbök tartoznak, melyek elemei egész számok 0-255-ig. A tömbök értékeit az alkalmazás egy RGB kódolású színként értelmezi.
+            </p>
+            <ul>
+                <li>"light": A sakktábla világos mezőinek színe</li>
+                <li>"dark": A sakktábla sötét mezőinek színe</li>
+            </ul>
+            <p>
+                Az alábbi kulcsokhoz 4 elemű tömbök tartoznak, melyek elemei egész számok 0-255-ig. A tömbök értékeit az alkalmazás egy RGBA kódolású színként értelmezi. Ezek a színek a mezők alapszíneivel lesznek keverve az alpha értékük alapján.
+            </p>
+            <ul>
+                <li>"check": A király mezőjének színe amikor sakkban áll</li>
+                <li>"piece_left": Az előzőleg mozgatott bábu eredeti mezőjének a színe.</li>
+                <li>"piece_arrived": Annak a mezőnek a színe, ahova a legutóbb mozgatott bábu megérkezett</li>
+                <li>"selected": Az éppen kiválasztott bábu alatti mező színe</li>
+                <li>"destination": A kiválasztott bábu legális lépéseinek cél mezői ilyen színűek lesznek.</li>
+            </ul>
+            <h3>white, black</h3>
+            <p>
+                Mindkét objektumban az adott fél bábuit ábrázoló képek elérési útját kell megadni. Az elérési út formátuma olyan, mintha egy JAVA fájlban importálna. Az alap könyvtár a stílus mappája, a képeket ide másolja be. Az alkalmazás csak png formátumú képeket támogat, ezért a kiterjesztést kötelező elhagyni, márcsak azért is, mert a címben szereplő pontok beolvasáskor a platform könyvtár elválasztó szimbólumává alakulnak. Például tehát ha a "pieces\black\king.png" fájlt akarja megadni, azt így teheti meg: "pieces.black.king".
+            </p>
+            <p>
+                Kulcsként a bábuk angol elnevezéseit adja meg: "king", "queen", "bishop", "knight", "rook", "pawn".
+            </p>
+            <h3>texture_interpolation</h3>
+            <p>
+                A kép átméretezési algoritmusát választhatja meg. Opcionális, az alkalmazás alapból a "bilinear" módszert fogja alkalmazni.
+            </p>
+            <ul>
+                <li>"bilinear": Az éleket elsimító módszer, ez az ajánlott választás</li>
+                <li>"nearest": Az átméretezett kép pixeles lesz, egy pixel mindíg az eredeti képen a legközelebbi szomszédjának színét veszi föl. Csak pixelartot használó stílusokhoz ajánlott.</li>
+            </ul>
+            <h3>Példa: modern.json</h3>
+            <code>
+                <pre>
+    {
+        <span class="key">"board"</span>: {
+            <span class="key">"light"</span>: [<span class="num">203</span>, <span class="num">219</span>, <span class="num">219</span>],
+            <span class="key">"dark"</span>: [<span class="num">137</span>, <span class="num">161</span>, <span class="num">193</span>],
+            <span class="key">"check"</span>: [<span class="num">255</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">128</span>],
+            <span class="key">"piece_left"</span>: [<span class="num">174</span>, <span class="num">216</span>, <span class="num">0</span>, <span class="num">132</span>],
+            <span class="key">"piece_arrived"</span>: [<span class="num">174</span>, <span class="num">216</span>, <span class="num">0</span>, <span class="num">132</span>],
+            <span class="key">"selected"</span>: [<span class="num">0</span>, <span class="num">135</span>, <span class="num">99</span>, <span class="num">160</span>],
+            <span class="key">"destination"</span>: [<span class="num">0</span>, <span class="num">229</span>, <span class="num">168</span>, <span class="num">140</span>]
+        },
+        <span class="key">"white"</span>: {
+            <span class="key">"king"</span>: <span class="str">"white.king"</span>,
+            <span class="key">"queen"</span>: <span class="str">"white.queen"</span>,
+            <span class="key">"bishop"</span>: <span class="str">"white.bishop"</span>,
+            <span class="key">"knight"</span>: <span class="str">"white.knight"</span>,
+            <span class="key">"rook"</span>: <span class="str">"white.rook"</span>,
+            <span class="key">"pawn"</span>: <span class="str">"white.pawn"</span>
+        },
+        <span class="key">"black"</span>: {
+            <span class="key">"king"</span>: <span class="str">"black.king"</span>,
+            <span class="key">"queen"</span>: <span class="str">"black.queen"</span>,
+            <span class="key">"bishop"</span>: <span class="str">"black.bishop"</span>,
+            <span class="key">"knight"</span>: <span class="str">"black.knight"</span>,
+            <span class="key">"rook"</span>: <span class="str">"black.rook"</span>,
+            <span class="key">"pawn"</span>: <span class="str">"black.pawn"</span>
+        }
+    }
+                </pre>
+            </code>                    
+        </main>
+        <div>
+            <hr>
+            <p>
+                <a href="https://www.iit.bme.hu/oktatas/tanszeki_targyak/BMEVIIIAB00">A programozás alapjai 3 - BMEVIIIAB00</a> tárgy házifeladat,<br>
+                2022/23/1 félév,<br>
+                Apostagi Bálint - WAOIBU    
+            </p>
+        </div>
+    </body>
+</html>

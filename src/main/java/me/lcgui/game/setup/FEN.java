@@ -1,6 +1,7 @@
 package me.lcgui.game.setup;
 
 import me.lcgui.game.Game;
+import me.lcgui.game.IncorrectNotationException;
 import me.lcgui.game.board.*;
 
 import java.io.Serializable;
@@ -59,7 +60,7 @@ public class FEN implements GameSetup, Serializable {
         fen = fenBuilder.toString();
     }
 
-    public void set(Game game) {
+    public void set(Game game) throws IncorrectNotationException {
         String[] sections = fen.split(" ");
 
         int file = 0, rank = AbstractBoard.BOARD_SIZE - 1;
@@ -72,24 +73,46 @@ public class FEN implements GameSetup, Serializable {
                 if(Character.isDigit(c))
                     file += c - '0';
                 else {
-                    game.getBoard().setPiece(file, rank, Piece.fromChar(c));
+                    Piece p = Piece.fromChar(c);
+                    if(p == null)
+                        throw new IncorrectNotationException(
+                                "The character '" + c + "' is not a piece nor a rank break.");
+
+                    game.getBoard().setPiece(file, rank, p);
                     file++;
                 }
             }
         }
 
-        Side turn = sections[1].equals("w") ? Side.White : Side.Black;
+        Side turn = switch (sections[1]) {
+            case "w" -> Side.White;
+            case "b" -> Side.Black;
+            default -> throw new IncorrectNotationException("Side to play is invalid (w/b)");
+        };
 
         int castleRights = 0;
-        if(sections[2].contains("Q")) castleRights |= State.CASTLE_WQ;
-        if(sections[2].contains("K")) castleRights |= State.CASTLE_WK;
-        if(sections[2].contains("k")) castleRights |= State.CASTLE_BQ;
-        if(sections[2].contains("q")) castleRights |= State.CASTLE_BK;
+        for(char c : sections[2].toCharArray()) {
+            switch (c) {
+                case 'Q' -> castleRights |= State.CASTLE_WQ;
+                case 'K' -> castleRights |= State.CASTLE_WK;
+                case 'q' -> castleRights |= State.CASTLE_BQ;
+                case 'k' -> castleRights |= State.CASTLE_BK;
+                default -> throw new IncorrectNotationException("Castle right is invalid (Q/K/q/k)");
+            }
+        }
 
         Square epTarget = Square.parse(sections[3]);
+        if(!("-".equals(sections[3]) ||epTarget.valid()))
+            throw new IncorrectNotationException("En passant target square is invalid.");
 
-        int ply50 = Integer.parseInt(sections[4]);
-        int ply = (Integer.parseInt(sections[5]) - 1) * 2;
+        int ply50, ply;
+        try {
+            ply50 = Integer.parseInt(sections[4]);
+            ply = (Integer.parseInt(sections[5]) - 1) * 2;
+        } catch (NumberFormatException e) {
+            throw new IncorrectNotationException(e);
+        }
+
         if(turn == Side.Black) // TODO Test ply conversion
             ply++;
 

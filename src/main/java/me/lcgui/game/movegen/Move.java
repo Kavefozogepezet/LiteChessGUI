@@ -1,5 +1,9 @@
 package me.lcgui.game.movegen;
 
+import me.lcgui.game.Clock;
+import me.lcgui.game.Game;
+import me.lcgui.game.IllegalMoveException;
+import me.lcgui.game.IncorrectNotationException;
 import me.lcgui.game.board.Piece;
 import me.lcgui.game.board.Square;
 
@@ -94,5 +98,27 @@ public class Move implements Serializable {
                     && flags == other.flags;
         }
         return false;
+    }
+
+    public static Move parseLA(Game game, String moveStr) throws IncorrectNotationException, IllegalMoveException {
+        if(moveStr.length() < 4 || moveStr.length() > 5)
+            throw new IncorrectNotationException("Move must be in long algebraic notation.");
+
+        Square
+                from = Square.parse(moveStr.substring(0, 2)),
+                to = Square.parse(moveStr.substring(2, 4));
+
+        if(!(from.valid() && to.valid()))
+            throw new IncorrectNotationException("Move refers to invalid squares");
+
+        if(moveStr.length() == 5)
+            if(!"qrbn".contains(moveStr.substring(4, 5)))
+                throw new IncorrectNotationException("Promotion piece is invalid");
+
+        for(Move move : game.getPossibleMoves().from(from))
+            if(move.toString().equals(moveStr))
+                return move;
+
+        throw new IllegalMoveException();
     }
 }

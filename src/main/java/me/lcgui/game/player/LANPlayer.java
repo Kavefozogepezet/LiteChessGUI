@@ -1,8 +1,9 @@
-package me.lcgui.player;
+package me.lcgui.game.player;
 
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.movegen.Move;
+import me.lcgui.gui.SelectablePlayer;
 import me.lcgui.gui.factory.LANPlayerFactory;
 import me.lcgui.lan.NetworkThread;
 
@@ -19,7 +20,7 @@ public class LANPlayer implements Player {
         GAME, // sending game to client side
         INIT_READY, // sent all info
         MOVE, // move has been made
-        SYNC // clock synchronisation
+        RESULT // game has ended on host
     }
 
     private static class Packet implements Serializable {
@@ -64,8 +65,8 @@ public class LANPlayer implements Player {
             throw new RuntimeException("Cannot call on a host");
 
         synchronized (this) {
-            thread.write(new Packet(Command.NAME, other.getName()));
-            thread.write(new Packet(Command.INIT_READY));
+            sendPacket(Command.NAME, other.getName());
+            sendPacket(Command.INIT_READY);
             wait(); // wait until INIT_READY received
         }
         game.setPlayer(mySide.other(), other);
@@ -76,9 +77,7 @@ public class LANPlayer implements Player {
         myTurn = true;
         try {
             if(!game.getMoveList().isEmpty()) {
-                thread.write(new Packet(Command.MOVE, game.getMoveList().getLast().move));
-                if (host && game.usesTimeControl())
-                    thread.write(new Packet(Command.SYNC, game.getClock()));
+                sendPacket(Command.MOVE, game.getMoveList().getLast().move);
             }
         } catch (IOException e) {
             game.resign();
@@ -94,16 +93,17 @@ public class LANPlayer implements Player {
     public void setGame(Game game, Side mySide) {
         if(this.game != null)
             throw new RuntimeException("The game can be set only once.");
+
         this.game = game;
         this.mySide = mySide;
         if(host) {
             try {
-                thread.write(new Packet(Command.GAME, game));
-                thread.write(new Packet(Command.SIDE, mySide.other()));
+                sendPacket(Command.GAME, game);
+                sendPacket(Command.SIDE, mySide.other());
                 SwingUtilities.invokeLater(() -> { // Cannot finnish initialization now, because the other player might be null.
                     try {
-                        thread.write(new Packet(Command.NAME, game.getPlayer(mySide.other()).getName()));
-                        thread.write(new Packet(Command.INIT_READY));
+                        sendPacket(Command.NAME, game.getPlayer(mySide.other()).getName());
+                        sendPacket(Command.INIT_READY);
                     } catch (IOException e) {
                         game.endGame(Game.Result.lost(mySide), Game.Termination.ABANDONED);
                     }
@@ -121,6 +121,11 @@ public class LANPlayer implements Player {
 
     @Override
     public void gameEnd() {
+        try {
+            sendPacket(Command.RESULT, game.getResultData());
+        } catch (IOException ex) {
+            System.err.println(ex.getMessage());
+        }
         thread.close();
     }
 
@@ -140,42 +145,45 @@ public class LANPlayer implements Player {
         return mySide;
     }
 
+    public void sendPacket(Command cmd, Object data) throws IOException {
+        thread.write(new Packet(cmd, data));
+    }
+
+    public void sendPacket(Command cmd) throws IOException {
+        thread.write(new Packet(cmd));
+    }
+
     private synchronized void inputHandler(Object object) {
         if(!(object instanceof Packet packet))
             return;
 
-        try {
-            if(packet.command == Command.NAME) {
-                name = (String) packet.payload;
-            } else if(packet.command == Command.MOVE) {
-                if (!myTurn)
-                    return;
+        if(packet.command == Command.NAME) {
+            name = (String) packet.payload;
+        } else if(packet.command == Command.MOVE) {
+            if (!myTurn)
+                return;
 
-                Move move = (Move) packet.payload;
-                if (game.isValidMove(move)) {
-                    game.play(move);
-                    if (host && game.usesTimeControl())
-                        thread.write(new Packet(Command.SYNC, game.getClock()));
-                } else {
-                    game.resign();
-                }
-            } else if(packet.command == Command.INIT_READY) {
-                initialized = true;
-                if(!host) {
-                    Game g = this.game;
-                    this.game = null;
-                    g.setPlayer(mySide, this);
-                }
-                notify();
-            } else if(!host && packet.command == Command.SYNC) {
-                // TODO adjust clock : game.setClock((Clock) packet.payload);
-            } else if(!host && packet.command == Command.GAME) {
-                game = (Game) packet.payload;
-            } else if(!host && packet.command == Command.SIDE) {
-                mySide = (Side) packet.payload;
+            Move move = (Move) packet.payload;
+            if (game.isValidMove(move)) {
+                game.play(move);
+            } else {
+                game.resign();
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } else if(packet.command == Command.INIT_READY) {
+            initialized = true;
+            if (!host) {
+                Game g = this.game;
+                this.game = null;
+                g.setPlayer(mySide, this);
+            }
+            notify();
+        } else if(packet.command == Command.RESULT) {
+            Game.ResultData data = (Game.ResultData) packet.payload;
+            game.endGame(data.result, data.termination);
+        } else if(!host && packet.command == Command.GAME) {
+            game = (Game) packet.payload;
+        } else if(!host && packet.command == Command.SIDE) {
+            mySide = (Side) packet.payload;
         }
     }
 }

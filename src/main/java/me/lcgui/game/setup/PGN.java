@@ -1,12 +1,13 @@
 package me.lcgui.game.setup;
 
 import me.lcgui.game.Game;
+import me.lcgui.game.IncorrectNotationException;
 import me.lcgui.game.board.PieceType;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
-import me.lcgui.player.HumanPlayer;
-import me.lcgui.player.Player;
+import me.lcgui.game.player.HumanPlayer;
+import me.lcgui.game.player.Player;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -70,10 +71,10 @@ public class PGN implements GameSetup {
     }
 
     @Override
-    public void set(Game game) {
+    public void set(Game game) throws IncorrectNotationException {
         var pgnT = new PGNTokenizer();
 
-        Player white = new HumanPlayer(), black = new HumanPlayer();
+        Player white = null, black = null;
         Game.Result result = null;
         Game.Termination termination = null;
         GameSetup setup = new StartPos();
@@ -88,6 +89,9 @@ public class PGN implements GameSetup {
             }
         }
 
+        if(white == null || black == null)
+            throw new IncorrectNotationException("Missing mandatory player tags (White & Black)");
+
         setup.set(game);
         game.getPossibleMoves().generate();
         game.setPlayer(Side.White, white);
@@ -99,61 +103,88 @@ public class PGN implements GameSetup {
             Move move = null;
             String san = moveData.san;
 
-            if(san.equals("O-O")) {
-                Square to = game.getState().getTurn() == Side.White ? Square.g1 : Square.g8;
-                for(var candidate : game.getPossibleMoves().to(to))
-                    if(candidate.moving.type == PieceType.King)
-                        game.play(candidate);
-                if(moveData.comment != null)
-                    game.getMoveData(game.getState().getPly()).comment = moveData.comment;
-            } else if(moveData.san.equals("O-O-O")) {
-                Square to = game.getState().getTurn() == Side.White ? Square.c1 : Square.c8;
-                for(var candidate : game.getPossibleMoves().to(to))
-                    if(candidate.moving.type == PieceType.King)
-                        game.play(candidate);
-                if(moveData.comment != null)
-                    game.getMoveData(game.getState().getPly()).comment = moveData.comment;
-            } else {
-                char last = san.charAt(san.length() - 1);
-                char first = san.charAt(0);
-                char second = san.charAt(1);
+            while("#+!?".contains(san.substring(san.length() - 1)))
+                san = san.substring(0, san.length() - 1);
 
-                PieceType pt = PieceType.Pawn;
-                if(Character.isUpperCase(first))
-                    pt = PieceType.fromChar(first);
+            try {
+                if (san.equals("O-O")) {
+                    Square to = game.getState().getTurn() == Side.White ? Square.g1 : Square.g8;
+                    for (var candidate : game.getPossibleMoves().to(to)) {
+                        if (candidate.moving.type == PieceType.King) {
+                            game.play(candidate);
+                            break;
+                        }
+                    }
+                    if (moveData.comment != null)
+                        game.getMoveData(game.getState().getPly() - 1).comment = moveData.comment;
+                } else if (moveData.san.equals("O-O-O")) {
+                    Square to = game.getState().getTurn() == Side.White ? Square.c1 : Square.c8;
+                    for (var candidate : game.getPossibleMoves().to(to)) {
+                        if (candidate.moving.type == PieceType.King) {
+                            game.play(candidate);
+                            break;
+                        }
+                    }
+                    if (moveData.comment != null)
+                        game.getMoveData(game.getState().getPly() - 1).comment = moveData.comment;
+                } else {
+                    char first = san.charAt(0);
+                    char second = san.charAt(1);
+                    char prom = 0;
 
-                if(!Character.isDigit(last))
-                    san = san.substring(0, san.length() - 1);
+                    PieceType pt;
+                    if (Character.isUpperCase(first)) {
+                        pt = PieceType.fromChar(first);
+                        if (pt == null)
+                            throw new IncorrectNotationException("Invalid piece notation in move " + san);
+                    } else {
+                        pt = PieceType.Pawn;
+                    }
 
-                String toStr = san.substring(san.length() - 2, san.length());
-                Square to = Square.parse(toStr);
+                    if(san.contains("=")) {
+                        int idx = san.indexOf('=');
+                        prom = Character.toLowerCase(san.charAt(idx + 1));
+                        san = san.substring(0, idx);
+                    }
 
-                if(!to.valid())
-                    throw new RuntimeException("Invalid SAN string: " + san);
+                    String toStr = san.substring(san.length() - 2, san.length());
+                    Square to = Square.parse(toStr);
+                    if (!to.valid())
+                        throw new IncorrectNotationException("Invalid destination square in move " + san);
 
-                var legalMoves = game.getPossibleMoves().to(to);
-                LinkedList<Move> candidates = new LinkedList<>();
-                for(var candidate : legalMoves) {
-                    if(candidate.moving.type == pt)
-                        candidates.add(candidate);
+                    var legalMoves = game.getPossibleMoves().to(to);
+                    LinkedList<Move> candidates = new LinkedList<>();
+
+                    for(var candidate : legalMoves) {
+                        if(
+                                candidate.to.equals(to) && candidate.moving.type == pt
+                                        && (prom == 0 || (candidate.isPromotion()
+                                            && candidate.getPromotionPiece().type.toChar() == prom))
+                        ) {
+                            candidates.add(candidate);
+                        }
+                    }
+
+                    if (moveCheck(game, moveData, candidates))
+                        continue;
+
+                    int file = pt == PieceType.Pawn
+                            ? Square.char2file(first)
+                            : Square.char2file(second);
+
+                    candidates.removeIf(move1 -> move1.from.file != file);
+
+                    if (moveCheck(game, moveData, candidates))
+                        continue;
+
+                    int rank = Square.char2file(san.charAt(3));
+                    candidates.removeIf(move2 -> move2.from.rank != rank);
+
+                    moveCheck(game, moveData, candidates);
                 }
-
-                if(moveCheck(game, moveData, candidates))
-                    continue;
-
-                int file = pt == PieceType.Pawn
-                        ? Square.char2file(first)
-                        : Square.char2file(second);
-
-                candidates.removeIf(move1 -> move1.from.file != file);
-
-                if(moveCheck(game, moveData, candidates))
-                    continue;
-
-                int rank = Square.char2file(san.charAt(3));
-                candidates.removeIf(move2 -> move2.from.rank != rank);
-
-                moveCheck(game, moveData, candidates);
+            }
+            catch (IndexOutOfBoundsException e) {
+                throw new IncorrectNotationException("Invalid move: " + san);
             }
         }
 
@@ -177,14 +208,14 @@ public class PGN implements GameSetup {
         return pgn;
     }
 
-    private boolean moveCheck(Game game, PGNTokenizer.Move moveData, LinkedList<Move> candidates) {
+    private boolean moveCheck(Game game, PGNTokenizer.Move moveData, LinkedList<Move> candidates) throws IncorrectNotationException {
         if(candidates.size() == 1) {
             game.play(candidates.get(0));
             if(moveData.comment != null)
                 game.getMoveData(game.getState().getPly() - 1).comment = moveData.comment;
             return true;
         } else if(candidates.size() == 0) {
-            throw new RuntimeException("Invalid move: " + moveData.san);
+            throw new IncorrectNotationException("No valid move found: " + moveData.san);
         }
         return false;
     }
@@ -214,7 +245,7 @@ public class PGN implements GameSetup {
         private record Move(String san, String comment) {}
 
         private class Index implements Cloneable {
-            public int idx = 0, line = 0, column = 0;
+            public int idx = 0, line = 1, column = 0;
 
             @Override
             public Index clone() {
@@ -249,7 +280,7 @@ public class PGN implements GameSetup {
         public final LinkedList<Move> moves = new LinkedList<>();
         private Index idx = new Index();
 
-        public PGNTokenizer() {
+        public PGNTokenizer() throws IncorrectNotationException {
             while (idx.idx < pgn.length()) {
                 dropWS();
                 char c = seeNext();
@@ -305,12 +336,12 @@ public class PGN implements GameSetup {
             return str.toString();
         }
 
-        private void readTag() {
+        private void readTag() throws IncorrectNotationException {
             StringBuilder tagStr = new StringBuilder();
             Index startIdx = idx.clone();
 
             if(next() != '[')
-                throw new RuntimeException("Expected tag at " + startIdx);
+                throw new IncorrectNotationException("Expected tag at " + startIdx);
 
             try {
                 while (true) {
@@ -322,53 +353,67 @@ public class PGN implements GameSetup {
                     tagStr.append(c);
                 }
             } catch (IndexOutOfBoundsException ex) {
-                throw new RuntimeException("Expected ']' for '[' at " + idx);
+                throw new IncorrectNotationException("Expected ']' for '[' at " + idx);
             }
         }
 
-        private void addTag(String str, Index start) {
+        private void addTag(String str, Index start) throws IncorrectNotationException {
             String[] tag = str.split(" ", 2);
             if(tag.length != 2)
-                throw new RuntimeException("Expected two elements in tag at " + start);
+                throw new IncorrectNotationException("Expected two elements in tag at " + start);
 
             String name = tag[0];
             String value = tag[1];
             if(value.length() < 2 || value.charAt(0) != '"' || value.charAt(value.length() - 1) != '"')
-                throw new RuntimeException("Invalid value in tag at " + start);
+                throw new IncorrectNotationException("Invalid value in tag at " + start);
 
             value = value.substring(1, value.length() - 1);
 
             tags.add(new Tag(name, value));
         }
 
-        private void readMove() {
+        private void readMove() throws IncorrectNotationException {
             for(int i = 0; i < 2 ; i++) {
                 String[] moveData = { null, null };
-                dropWS();
 
-                char c = seeNext();
-                if (seeNext() == '(')
-                    eatVariation();
-                else if (Character.isDigit(c))
+                eatVariations();
+
+                dropWS();
+                if (Character.isDigit(seeNext()))
                     return;
 
                 moveData[0] = nextStr();
-                dropWS();
-
-                if (seeNext() == '{')
-                    moveData[1] = readComment();
+                moveData[1] = readComments();
+                eatVariations();
 
                 moves.add(new Move(moveData[0], moveData[1]));
             }
         }
 
-        private String readComment() {
+        private void eatVariations() throws IncorrectNotationException {
+            while(eatVariation());
+        }
+
+        private String readComments() throws IncorrectNotationException {
+            String comment = null;
+            while(true) {
+                String append = readComment();
+                if(append != null)
+                    comment = comment == null ? append : comment + append;
+                else
+                    break;
+            }
+            return comment;
+        }
+
+        private String readComment() throws IncorrectNotationException {
+            dropWS();
+            if(seeNext() != '{')
+                return null;
+
             StringBuilder commentStr = new StringBuilder();
             Index startIdx = idx.clone();
-
-            if(next() != '{')
-                throw new RuntimeException("Expected comment at " + startIdx);
-
+            next();
             try {
                 while (true) {
                     char c = next();
@@ -377,26 +422,27 @@ public class PGN implements GameSetup {
                     commentStr.append(c);
                 }
             } catch (IndexOutOfBoundsException ex) {
-                throw new RuntimeException("Expected '}' pair for '{' at " + idx);
+                throw new IncorrectNotationException("Expected '}' pair for '{' at " + idx);
             }
         }
 
-        private void eatVariation() {
+        private boolean eatVariation() throws IncorrectNotationException {
+            dropWS();
+            if(seeNext() != '(')
+                return false;
+
             Index startIdx = idx.clone();
-
-            if(next() != '{')
-                throw new RuntimeException("Expected comment at " + startIdx);
-
+            next();
             try {
                 while (true) {
                     char c = next();
                     if(c == '(')
                         eatVariation();
                     else if (c == ')')
-                        return;
+                        return true;
                 }
             } catch (IndexOutOfBoundsException ex) {
-                throw new RuntimeException("Expected ')' pair for '(' at " + idx);
+                throw new IncorrectNotationException("Expected ')' pair for '(' at " + idx);
             }
         }
 
