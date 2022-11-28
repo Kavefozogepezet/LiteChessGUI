@@ -1,9 +1,6 @@
 package me.lcgui.game;
 
-import me.lcgui.game.board.Board;
-import me.lcgui.game.board.PieceType;
-import me.lcgui.game.board.Side;
-import me.lcgui.game.board.State;
+import me.lcgui.game.board.*;
 import me.lcgui.game.movegen.Move;
 import me.lcgui.game.movegen.MoveGen;
 import me.lcgui.game.movegen.SANBuilder;
@@ -18,7 +15,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * Egy partit reprezentáló osztály.
+ */
 public class Game implements Serializable {
+    /**
+     * A parti lehetséges kimeneteleit tartalmazó enum.
+     */
     public enum Result {
         WHITE_WINS(Side.White), BLACK_WINS(Side.Black), DRAW(null);
 
@@ -28,18 +31,34 @@ public class Game implements Serializable {
             this.winner = winner;
         }
 
+        /**
+         * @param side Ez a fél nyerte a partit.
+         * @return A kimenetel, miszerint az adott fél nyert.
+         */
         public static Result won(Side side) {
             return side == Side.White ? WHITE_WINS : BLACK_WINS;
         }
+
+        /**
+         * @param side Ez a fél elvesztette a partit.
+         * @return A kimenetel, miszerint az adott fél vesztett.
+         */
         public static Result lost(Side side) {
             return side == Side.Black ? WHITE_WINS : BLACK_WINS;
         }
     }
 
+    /**
+     * A játék végének okát ábrázoló enum.
+     */
     public enum Termination {
         NORMAL, FORFEIT, TIME_FORFEIT, ABANDONED
     }
 
+    /**
+     * Csomagoló osztály ami leírja egy játszma végét.
+     * Tartalmazza a kimenetelt, és a parti végének okát.
+     */
     public static class ResultData implements Serializable {
         public final Result result;
         public final Termination termination;
@@ -50,6 +69,9 @@ public class Game implements Serializable {
         }
     }
 
+    /**
+     * CSomagoló osztály egy lépés adatainak tárolására.
+     */
     public static class MoveData implements Serializable {
         public final int ply;
         public final Move move;
@@ -90,16 +112,38 @@ public class Game implements Serializable {
     private transient boolean started = false;
     private transient Player[] players = new Player[2];
 
+    /**
+     * Azt az eseményt jelöli, hogy az egyik játékos lépett a táblán.
+     */
     public transient Event<MoveData> moveEvent = new Event<>();
+
+    /**
+     * A parti végének eseménye.
+     */
     public transient Event<ResultData> endEvent = new Event<>();
+
+    /**
+     * Ha a partit időre játsszák, a sakkóra változásának eseménye.
+     */
     public transient Event<Clock> tickEvent = new Event<>();
 
+    /**
+     * Parti létrehozása egyedi kezdőpotícióval.
+     * @param setup A kezdőpotíció.
+     * @throws IncorrectNotationException A pozíciót leító jelölés helytelen volt.
+     */
     public Game(GameSetup setup) throws IncorrectNotationException {
         setup.set(this);
         possibleMoves.generate();
         recordPos();
     }
 
+    /**
+     * Parti létrehozása egyedi kezdőpozícióval, sakkórával.
+     * @param setup A kezdőpotíció.
+     * @param format A sakkóra formátuma.
+     * @throws IncorrectNotationException A pozíciót leító jelölés helytelen volt.
+     */
     public Game(GameSetup setup, Clock.Format format) throws IncorrectNotationException {
         this(setup);
         this.clock = new Clock(format, state.getTurn());
@@ -107,6 +151,10 @@ public class Game implements Serializable {
         clock.outOfTimeEvent.addListener((side) -> endGame(Result.lost(side), Termination.TIME_FORFEIT));
     }
 
+    /**
+     * Parti létrehozása a kezdőpozícióval, sakkórával.
+     * @param format A sakkóra formátuma.
+     */
     public Game(Clock.Format format) {
         this();
         this.clock = new Clock(format, state.getTurn());
@@ -114,6 +162,9 @@ public class Game implements Serializable {
         clock.outOfTimeEvent.addListener((side) -> endGame(Result.lost(side), Termination.TIME_FORFEIT));
     }
 
+    /**
+     * Parti létrehozása a kezdőpozícióval.
+     */
     public Game() {
         StartPos setup = new StartPos();
         setup.set(this);
@@ -121,6 +172,11 @@ public class Game implements Serializable {
         recordPos();
     }
 
+    /**
+     * Játszma elkezdése.
+     * Ez előtt a játékosokat be kell állítani.
+     * Utána tilos a játékosokat változtatni.
+     */
     public void startGame() {
         if(started || hasEnded())
             return;
@@ -139,6 +195,11 @@ public class Game implements Serializable {
         started = true;
     }
 
+    /**
+     * Beállítja a parti játékosait, csak a parti megkezdése előtt hívható meg.
+     * @param side A fél.
+     * @return A megadott féllel játszó játékos.
+     */
     public Player getPlayer(Side side) {
         return players[side.ordinal()];
     }
@@ -191,6 +252,11 @@ public class Game implements Serializable {
         return result;
     }
 
+    /**
+     * Megadja, goy egy lépés legális e a parti állása szerint.
+     * @param move A lépés amit vizsgál.
+     * @return igaz, ha legális a lépés.
+     */
     public synchronized boolean isValidMove(Move move) {
         for(Move validMove : possibleMoves.from(move.from))
             if(validMove.equals(move))
@@ -198,18 +264,30 @@ public class Game implements Serializable {
         return false;
     }
 
+    /**
+     * @return igaz, ha a parti befejeződött.
+     */
     public boolean hasEnded() {
         return result != null;
     }
 
+    /**
+     * @return igaz, ha a parti használ sakkórát.
+     */
     public boolean usesTimeControl() {
         return clock != null;
     }
 
+    /**
+     * @return igaz, ha a parti a kezdőpozícióból indult.
+     */
     public boolean isDefaultStart() {
         return defaultStart;
     }
 
+    /**
+     * @return igaz, ha a soron lévő játékosnak joga van döntetlent igényelni.
+     */
     public synchronized boolean canClaimDraw() {
         if(hasEnded())
             return false;
@@ -218,6 +296,10 @@ public class Game implements Serializable {
         return state.get50move() >= 50 || threefold;
     }
 
+    /**
+     * A {@link Player} példányok hívják meg, elvégzi az adott lépést.
+     * @param move A játékos lépése.
+     */
     public synchronized void play(Move move) {
         if(hasEnded())
             return;
@@ -261,16 +343,27 @@ public class Game implements Serializable {
             getPlayer(state.getTurn()).handleDrawClaim();
     }
 
+    /**
+     * A soron lévő játékos feladja a partit.
+     */
     public synchronized void resign() {
         if(!hasEnded())
             endGame(Result.lost(state.getTurn()), Termination.FORFEIT);
     }
 
+    /**
+     * A soron lévő játékos döntetlent igényel.
+     */
     public synchronized void draw() {
         if(!hasEnded())
             endGame(Result.DRAW, Termination.NORMAL);
     }
 
+    /**
+     * Véget veta partinak.
+     * @param result A parti eredménye.
+     * @param termination A parti végének oka.
+     */
     public synchronized void endGame(Result result, Termination termination) {
         if(hasEnded())
             return;
@@ -333,5 +426,36 @@ public class Game implements Serializable {
 
         players = new Player[2];
         return this;
+    }
+
+
+    /**
+     * Megvizsgálja hogy egy long algebraic notation-el megadott lépés legális e a jétszmában.
+     * Ha igen, visszaadja a lépést reprezentáló {@link Move} objektumot.
+     * @param moveStr A lépés long algebraic notation-ben.
+     * @return A legális lépés objektuma.
+     * @throws IncorrectNotationException A megadott karakterlánc nem volt értelmeznető.
+     * @throws IllegalMoveException A megadott lépés nem legális a partiban.
+     */
+    public Move parseLAMove(String moveStr) throws IncorrectNotationException, IllegalMoveException {
+        if (moveStr.length() < 4 || moveStr.length() > 5)
+            throw new IncorrectNotationException("Move must be in long algebraic notation.");
+
+        Square
+                from = Square.parse(moveStr.substring(0, 2)),
+                to = Square.parse(moveStr.substring(2, 4));
+
+        if (!(from.valid() && to.valid()))
+            throw new IncorrectNotationException("Move refers to invalid squares");
+
+        if (moveStr.length() == 5)
+            if (!"qrbn".contains(moveStr.substring(4, 5)))
+                throw new IncorrectNotationException("Promotion piece is invalid");
+
+        for (Move move : possibleMoves.from(from))
+            if (move.toString().equals(moveStr))
+                return move;
+
+        throw new IllegalMoveException();
     }
 }

@@ -26,7 +26,7 @@ public class StateTest {
     public void testCastling() {
         Assert.assertEquals(State.CASTLE_BQ | State.CASTLE_WK, state.getCastleRights());
         Assert.assertTrue(state.canCastle(State.CASTLE_BQ));
-        Assert.assertTrue(state.canCastle(State.CASTLE_W));
+        Assert.assertTrue(state.canCastle(State.CASTLE_WK));
 
         Move move = new Move(Square.h1, Square.h2, Piece.WRook);
         state.movePlayed(move);

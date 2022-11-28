@@ -4,6 +4,9 @@ import me.lcgui.game.Game;
 import me.lcgui.game.board.*;
 import me.lcgui.gui.BoardView;
 
+/**
+ * Kezdőpozíciót beállító osztály.
+ */
 public class StartPos implements GameSetup {
     @Override
     public void set(Game game) {

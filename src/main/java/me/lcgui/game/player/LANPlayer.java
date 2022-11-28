@@ -11,9 +11,11 @@ import javax.swing.*;
 import java.io.IOException;
 import java.io.Serializable;
 
+/**
+ * Olyan {@link Player} amely a lokális hálózat egy másik eszközétől kapja a lépéseket.
+ */
 @SelectablePlayer(name = "Player over LAN", factoryClass = LANPlayerFactory.class)
 public class LANPlayer implements Player {
-    // TODO sync comments
     private enum Command {
         NAME, // name sync
         SIDE, // side sync
@@ -54,6 +56,10 @@ public class LANPlayer implements Player {
 
     private boolean initialized = false;
 
+    /**
+     * @param thread A hálózati kommunikációt folytató szál.
+     * @param host igaz, ha ez a fél a host, azaz ez a fél kezeli a meccset, és állapítja meg az eredményét.
+     */
     public LANPlayer(NetworkThread thread, boolean host) {
         this.host = host;
         this.thread = thread;

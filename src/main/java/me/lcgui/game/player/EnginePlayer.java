@@ -9,6 +9,9 @@ import me.lcgui.gui.factory.EnginePlayerFactory;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 
+/**
+ * Olyan {@link Player}, amely a lépéseit egy engine-től kapja.
+ */
 @SelectablePlayer(name = "Engine", factoryClass = EnginePlayerFactory.class)
 public class EnginePlayer implements Player {
     private Game game = null;
@@ -16,6 +19,9 @@ public class EnginePlayer implements Player {
     private final Engine engine;
     private boolean myTurn = false;
 
+    /**
+     * @param engine Az engine, amit a játékos használni fog.
+     */
     public EnginePlayer(Engine engine) {
         this.engine = engine;
         engine.addMoveListener(onBestEvent);

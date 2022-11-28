@@ -6,6 +6,9 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.text.FieldPosition;
 
+/**
+ * Fájl beviteléhez használható swing komponens.
+ */
 public class FileInputField extends JPanel {
     public static final String FOLDER_SYMBOL = "\uD83D\uDCC1";
 

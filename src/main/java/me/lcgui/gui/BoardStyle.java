@@ -14,10 +14,16 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.LinkedList;
 
-
+/**
+ * Tábla stílust tároló osztály.
+ */
 public class BoardStyle {
     public static final String STYLE = "style";
 
+    /**
+     * @return A beolvasható stílisuk listája.
+     * @throws StyleLoadingException A stílus mappát nem sikerült elérni.
+     */
     public static String[] getAvailableStyles() throws StyleLoadingException {
         LinkedList<String> styleNames = new LinkedList<>();
         File[] files = stylesDir.listFiles();
@@ -43,6 +49,9 @@ public class BoardStyle {
 
     private final Image[][] imgs = new BufferedImage[Side.Count.ordinal()][PieceType.Count.ordinal()];
 
+    /**
+     * A textúrák árméretezéséhez használandó metódus.
+     */
     public Object textureInterpolation = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
     // colors
@@ -71,6 +80,11 @@ public class BoardStyle {
         return imgs[side.ordinal()][pieceType.ordinal()];
     }
 
+    /**
+     * Betölti a megadott nevű stílust.
+     * @param styleName A stílus neve.
+     * @throws StyleLoadingException A stílus JSON fájlja helytelen volt, vagy a textúrákat nem sikerült betölteni.
+     */
     public void loadStyle(String styleName) throws StyleLoadingException {
         if(currentStyleName.equals(styleName))
             return;
@@ -88,8 +102,8 @@ public class BoardStyle {
             baseLight = readRGB(board, "light");
             baseDark = readRGB(board, "dark");
             sqihCheck = readRGBA(board, "check");
-            sqihMoved = readRGBA(board, "piece left");
-            sqihArrived = readRGBA(board, "piece arrived");
+            sqihMoved = readRGBA(board, "piece_left");
+            sqihArrived = readRGBA(board, "piece_arrived");
             sqmhSelected = readRGBA(board, "selected");
             sqmhMove = readRGBA(board, "destination");
 

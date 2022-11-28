@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 
+/**
+ * Hálózati kommunikációra képes osztály kliens szerepében.
+ * A kliens egy {@link ServerThread}-hez kapcsolódik.
+ */
 public class ClientThread extends NetworkThread {
 
     public ClientThread(String password) {

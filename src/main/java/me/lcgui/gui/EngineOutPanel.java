@@ -11,6 +11,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 
+/**
+ * Engine keresési kimenetét listázó grafikusan megjeleníthető osztály.
+ */
 public class EngineOutPanel implements GUICreator {
     private final DefaultTableModel tModel = new DefaultTableModel(SearchInfo.InfoNames, 0);
 
@@ -24,6 +27,9 @@ public class EngineOutPanel implements GUICreator {
         createGUI();
     }
 
+    /**
+     * @param engine Ennek az enginnek a kimenetét fogja listázni az objektum.
+     */
     public void listenToEngine(Engine engine) {
         if(myEngine != null) {
             myEngine.removeMoveListener(onBestEvent);

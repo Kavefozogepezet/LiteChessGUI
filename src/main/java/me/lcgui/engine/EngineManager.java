@@ -8,7 +8,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 
+/**
+ * Az engine-ek telepítését és futtatását kezelő osztály.
+ */
 public class EngineManager implements Serializable {
+    /**
+     * Az engine kommunikáció naplózásának bool értékű beállítása.
+     */
     public static final String ENGINE_LOG = "engine_log";
 
     private static final File logFile = new File("enginecom.log");
@@ -16,10 +22,21 @@ public class EngineManager implements Serializable {
     private final HashMap<String, EngineConfig> installedEngines = new HashMap<>();
     private transient HashMap<String, EngineWrapper> runningEngines = new HashMap<>();
 
+    /**
+     * @return Az összes telepített engine neve.
+     */
     public Collection<String> getInstalledEngines() {
         return installedEngines.keySet();
     }
 
+    /**
+     * Telepíti a megadott engine-t.
+     * @param path Az engine futtatható állományának elérési útja.
+     * @param protocol A protokoll neve, amivel az osztály megpróbál kommunikálni az engine-el.
+     * @return A telepített engine neve.
+     * @throws EngineVerificationFailure Az engine nem indult el, vagy nem az elvárt módon kommunikált.
+     * @throws EngineAlreadyInstalledException Az engine már installálva volt.
+     */
     public String installEngine(File path, String protocol) throws
             EngineVerificationFailure,
             EngineAlreadyInstalledException
@@ -38,10 +55,20 @@ public class EngineManager implements Serializable {
         return name;
     }
 
+    /**
+     * Törni az enginet a nyilvántartásából.
+     * @param name Az engine neve.
+     */
     public void uninstallEngine(String name) {
         installedEngines.remove(name);
     }
 
+    /**
+     * Visszaadja a kért engine-t. Ha az engine még nem futott volna, elindítja.
+     * @param name A kért engine neve.
+     * @return A kért engine
+     * @throws EngineVerificationFailure Az engine nem indult el, vagy nem meglelelően kommunikált.
+     */
     public Engine getInstance(String name) throws EngineVerificationFailure {
         EngineWrapper wrapper = runningEngines.get(name);
         Engine engine;
@@ -54,10 +81,18 @@ public class EngineManager implements Serializable {
         return engine;
     }
 
+    /**
+     * @return Az éppen futó engine-ek nevei.
+     */
     public Set<String> getRunningEngines() {
         return runningEngines.keySet();
     }
 
+    /**
+     * Engine név alapján megadja a hozzá tartozó konfigurációt, ha telepítve van az engine.
+     * @param name Az engine neve.
+     * @return Az engine konfigurációja. Ha az engine nincs telepítve, null.
+     */
     public EngineConfig getConfig(String name) {
         return installedEngines.get(name);
     }

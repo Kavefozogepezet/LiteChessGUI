@@ -13,6 +13,10 @@ import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.LinkedList;
 
+/**
+ * Megjeleníti egy parti lépéseit, és a hozzájuk fűzött kommenteket táblázatos formában.
+ * A kommenteket szerkeszteni tudja a felhasználó.
+ */
 public class MoveListPanel implements GUICreator {
     private final MoveModel tModel = new MoveModel();
     private Game myGame;
@@ -24,6 +28,9 @@ public class MoveListPanel implements GUICreator {
         createGUI();
     }
 
+    /**
+     * @param game A panel ennek a játszmának a lépéseit fogja mutatni.
+     */
     public void followGame(Game game) {
         if(myGame != null)
             myGame.moveEvent.removeListener(onMovePlayed);

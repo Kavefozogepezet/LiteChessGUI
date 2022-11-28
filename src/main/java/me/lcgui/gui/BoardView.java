@@ -1,7 +1,7 @@
 package me.lcgui.gui;
 
 import me.lcgui.app.LiteChessGUI;
-import me.lcgui.audio.AudioFX;
+import me.lcgui.app.AudioFX;
 import me.lcgui.game.board.*;
 import me.lcgui.misc.ColorExt;
 import me.lcgui.game.movegen.Move;
@@ -10,16 +10,20 @@ import me.lcgui.misc.Event;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.util.Timer;
-import java.util.TimerTask;
 
+/**
+ * SAkktábla grafigus megjelenítésére használatos osztály.
+ */
 public class BoardView extends AbstractBoard implements GUICreator {
     public static final String SHOW_COODDINATES = "show_coordinates";
     public static final String SHOW_POSSIBLE_MOVES = "show_possible_moves";
     public static final String SHOW_SQUARE_INFO = "show_square_info";
 
+    /**
+     * Az esemény, amikor a felhasználó rákattint az egyik mezőre.
+     */
     public final Event<Square> clickEvent = new Event<>();
+
     private final SquareButton[][] squares = new SquareButton[BOARD_SIZE][BOARD_SIZE];
     private final JPanel GUIRoot = new JPanel();
 
@@ -40,6 +44,10 @@ public class BoardView extends AbstractBoard implements GUICreator {
         GUIRoot.repaint();
     }
 
+    /**
+     * Egy {@link Board} példály állását átmásolja.
+     * @param board A tábla, amit másol.
+     */
     public void copyBoard(Board board) {
         for(int rank = 0; rank < BOARD_SIZE; rank++) {
             for(int file = 0; file < BOARD_SIZE; file++) {
@@ -48,6 +56,11 @@ public class BoardView extends AbstractBoard implements GUICreator {
         }
     }
 
+    /**
+     * {@link AbstractBoard#play(Move)}
+     * Lejátszja a lépés hangeffektjéz.
+     * @param move A végrehajtandó lépés.
+     */
     @Override
     public void play(Move move) {
         super.play(move);
@@ -68,6 +81,11 @@ public class BoardView extends AbstractBoard implements GUICreator {
         }
     }
 
+    /**
+     * {@link AbstractBoard#unplay(Move)}
+     * Lejátszja a lépés hangeffektjéz.
+     * @param move A végrehajtandó lépés.
+     */
     @Override
     public void unplay(Move move) {
         super.unplay(move);
@@ -103,22 +121,42 @@ public class BoardView extends AbstractBoard implements GUICreator {
         return squares[square.rank][square.file].piece;
     }
 
+    /**
+     * @return A mezők mérete a képernyőn.
+     */
     public Dimension getSquareSize() {
         return squares[0][0].getSize();
     }
 
+    /**
+     * @param sq A mező aminek a helyét keressük.
+     * @return A mező koordinátái a képernyőn.
+     */
     public Point getSquareLocation(Square sq) {
         return squares[sq.rank][sq.file].getLocationOnScreen();
     }
 
+    /**
+     * Beállítja a mező színezését adott stílusúra.
+     * @param square A mező.
+     * @param hl A mező kiemelése.
+     */
     public void setSqHighlight(Square square, SqInfoHL hl) {
         squares[square.rank][square.file].setInfoHL(hl);
     }
 
+    /**
+     * Beállítja a mező színezését adott stílusúra.
+     * @param square A mező.
+     * @param hl A mező kiemelése.
+     */
     public void setSqHighlight(Square square, SqMoveHL hl) {
         squares[square.rank][square.file].setMoveHL(hl);
     }
 
+    /**
+     * Törli az összes kiamalést.
+     */
     public void clearAllHighlight() {
         for(int rank = 0; rank < BOARD_SIZE; rank++) {
             for(int file = 0; file < BOARD_SIZE; file++) {
@@ -129,6 +167,9 @@ public class BoardView extends AbstractBoard implements GUICreator {
         }
     }
 
+    /**
+     * Frissíti a kiemelések színét és a bábu textúrákat.
+     */
     public void updateStyle() {
         for(int rank = BOARD_SIZE - 1; rank >= 0; rank--)
             for (int file = 0; file < BOARD_SIZE; file++)
@@ -235,15 +276,21 @@ public class BoardView extends AbstractBoard implements GUICreator {
         return GUIRoot;
     }
 
+    /**
+     * Egy mező általános kiemelésének értékeit tartalmazó enum.
+     */
     public enum SqInfoHL {
         None, Checked, Moved, Arrived,
     }
 
+    /**
+     * Egy mező felhasználói interakcióra történő kiemelésének értékeit tartalmazó enum.
+     */
     public enum SqMoveHL {
         None, Selected, Move
     }
 
-    class SquareButton extends JPanel {
+    private class SquareButton extends JPanel {
         private final Square mySquare;
         public Piece piece = null;
 

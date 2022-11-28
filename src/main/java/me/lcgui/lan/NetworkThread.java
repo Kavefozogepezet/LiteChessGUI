@@ -1,13 +1,18 @@
 package me.lcgui.lan;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.*;
 import java.util.function.Consumer;
 
+/**
+ * Abstract osztály hálózati működés megvalósítására.
+ * TCP kapcsolat építésére használatos, amit egy jelszóval lehet felépíteni.
+ * A kapcsolaton keresztül szerializált objektumok küldhetők.
+ */
 public abstract class NetworkThread extends Thread {
+    /**
+     * A hálózati kapcsolat állapota.
+     */
     public enum State {
         NOT_CONNECTED, CONNECTED, FAILED, DISCONNECTED, SHUT_DOWN
     }
@@ -26,6 +31,9 @@ public abstract class NetworkThread extends Thread {
     private Consumer<Object> receiverCallback = null;
     private Consumer<State> connectionCallback = null;
 
+    /**
+     * @param password a jelszó, amivel csatlakozni lehet.
+     */
     public NetworkThread(String password) {
         this.password = password;
     }
@@ -38,6 +46,9 @@ public abstract class NetworkThread extends Thread {
         return socket != null && socket.isConnected();
     }
 
+    /**
+     * Bezárja a TCP kapcsolatot.
+     */
     public void close() {
         try {
             socket.close();
@@ -46,19 +57,32 @@ public abstract class NetworkThread extends Thread {
         } catch (IOException ignore) {}
     }
 
+    /**
+     * @param connectionCallback Kapcsolati állapot megváltozását feldolgozó objektum.
+     */
     public void setConnectionCallback(Consumer<State> connectionCallback) {
         this.connectionCallback = connectionCallback;
     }
 
+    /**
+     * Kapcsolati állapot változásakor hívandó meg.
+     */
     protected void invokeConnectionCallback() {
         if(connectionCallback != null)
             connectionCallback.accept(state);
     }
 
+    /**
+     * @param receiverCallback Hálózaton beárkezett adatot feldolgozó objektum.
+     */
     public void setReceiverCallback(Consumer<Object> receiverCallback) {
         this.receiverCallback = receiverCallback;
     }
 
+    /**
+     * Hálózati forgalom esetén hívandó meg.
+     * @param obj A hálózaton áljött objektum.
+     */
     protected void invokeReceiverCallback(Object obj) {
         if(receiverCallback != null)
             receiverCallback.accept(obj);
@@ -71,6 +95,11 @@ public abstract class NetworkThread extends Thread {
         }
     }
 
+    /**
+     * A kapcsolat létrejöttekor beállítja a socket-ek, és a stream-eket amin a kommunikáció folyik.
+     * @param socket A kapcsolódott socket.
+     * @throws IOException A stream-eket nem sikerült kinyerni a socketből.
+     */
     protected void setSocket(Socket socket) throws IOException {
         this.socket = socket;
         out = new ObjectOutputStream(socket.getOutputStream());
@@ -86,6 +115,10 @@ public abstract class NetworkThread extends Thread {
         return socket;
     }
 
+    /**
+     * Amíg a beállított socekt kapcsolódva van, folyamatosan olvassa a bemeneti stream-et,
+     * és meghívja a feldolgozó eseményt.
+     */
     protected void beginReading() {
         while (socket.isConnected()) {
             try {
@@ -108,11 +141,22 @@ public abstract class NetworkThread extends Thread {
         return obj;
     }
 
-    public void write(Object obj) throws IOException {
+    /**
+     * Üzenetet köld a hálózaton keresztül.
+     * @param obj A küldeni kívánt objektom
+     * @throws IOException
+     */
+    public void write(Serializable obj) throws IOException {
         out.writeObject(obj);
         out.flush();
     }
 
+    /**
+     * UDP datagram küldése broadcast módban.
+     * @param s A socket amin a datagramot elküldi.
+     * @param bytes Az adat, amit a datagramba foglal.
+     * @throws IOException
+     */
     protected void broadcastDatagram(DatagramSocket s, byte[] bytes) throws IOException {
         DatagramPacket packet = new DatagramPacket(
                 bytes, bytes.length,
@@ -120,6 +164,14 @@ public abstract class NetworkThread extends Thread {
         s.send(packet);
     }
 
+    /**
+     * UDP datagram küldése konkrét címre.
+     * @param s A socket amin a datagramot elküldi.
+     * @param bytes Az adat, amit a datagramba foglal.
+     * @param address A cél cím.
+     * @param port A cél port.
+     * @throws IOException
+     */
     protected void sendDatagram(DatagramSocket s, byte[] bytes, InetAddress address, int port) throws IOException {
         DatagramPacket packet = new DatagramPacket(
                 bytes, bytes.length, address, port);
@@ -127,6 +179,13 @@ public abstract class NetworkThread extends Thread {
         System.out.println("Sent Datagram: " + packet);
     }
 
+    /**
+     * Hallgatózik UDP datagram-ra várva.
+     * @param s A socket amin hallgatózik.
+     * @param maxSize A datagram maximális mérete bájtokban.
+     * @return A fogadott csomag.
+     * @throws IOException
+     */
     protected DatagramPacket receiveDatagram(DatagramSocket s, int maxSize) throws IOException {
         DatagramPacket packet = new DatagramPacket(new byte[maxSize], maxSize);
         s.receive(packet);

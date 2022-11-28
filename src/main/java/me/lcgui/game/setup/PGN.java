@@ -13,9 +13,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 
+/**
+ * PGN jelölést tartalmazó osztály.
+ */
 public class PGN implements GameSetup {
     String pgn;
 
+    /**
+     * {@link Game} példányból készült PGN jelölés, ami leírja a parti lépéseit.
+     * @param game A parti, amit a PGN ábrázolni fog.
+     */
     public PGN(Game game) {
         StringBuilder pgnb = new StringBuilder();
         pgnb.append(tagLineMaker("Event", "Casual Match"));
@@ -66,10 +73,21 @@ public class PGN implements GameSetup {
         pgn = pgnb.toString();
     }
 
+    /**
+     * PGN jelölésből készült példány, amit parti felállításához lehet majd használni.
+     * @param str A jelölés.
+     */
     public PGN(String str) {
         this.pgn = str;
     }
 
+    /**
+     * Beállítja a megadott parti kezdőpozicióját, és meglépi a lépéseket.
+     * Meghívja a parti {@link Game#startGame()} metódusát.
+     * Ha a parti már véget ért, a {@link Game#endGame} metódust is meghíjvja.
+     * @param game A parti.
+     * @throws IncorrectNotationException A PGN jelölés érvénytelen volt.
+     */
     @Override
     public void set(Game game) throws IncorrectNotationException {
         var pgnT = new PGNTokenizer();

@@ -5,17 +5,22 @@ import me.lcgui.game.movegen.Move;
 import java.io.Serializable;
 import java.util.LinkedList;
 
+/**
+ * Sakkparti állapotát tároló osztály.
+ * Számon tartja a féllépések számát, a következő félt, sáncolási jogokat,
+ * en passant cél mezőt, és az 50 lépés szabály számlálót.
+ */
 public class State implements Serializable {
     public static final int CASTLE_WK = 0b0001;
     public static final int CASTLE_WQ = 0b0010;
     public static final int CASTLE_BK = 0b0100;
     public static final int CASTLE_BQ = 0b1000;
 
-    public static final int CASTLE_W =  CASTLE_WK | CASTLE_WQ;
-    public static final int CASTLE_B =  CASTLE_BK | CASTLE_BQ;
-    public static final int CASTLE_K =  CASTLE_WK | CASTLE_BK;
-    public static final int CASTLE_Q =  CASTLE_WQ | CASTLE_BQ;
-    public static final int CASTLE_ALL =CASTLE_W | CASTLE_B;
+    public static final int CASTLE_W =   CASTLE_WK | CASTLE_WQ;
+    public static final int CASTLE_B =   CASTLE_BK | CASTLE_BQ;
+    public static final int CASTLE_K =   CASTLE_WK | CASTLE_BK;
+    public static final int CASTLE_Q =   CASTLE_WQ | CASTLE_BQ;
+    public static final int CASTLE_ALL = CASTLE_W | CASTLE_B;
 
     private int castlingRights = 0;
     private Square epTarget = Square.invalid;
@@ -33,6 +38,10 @@ public class State implements Serializable {
         this.ply50 = ply50;
     }
 
+    /**
+     * A lépés alapján frissíti a parti állapotát.
+     * @param move A lépés, amit végrehajtott az egyik fél.
+     */
     public void movePlayed(Move move) {
         epTarget = Square.invalid;
 
@@ -64,8 +73,13 @@ public class State implements Serializable {
             ply50 = 0;
     }
 
+    /**
+     * Megadja hogy a sáncolási jogok érvényesek-e. Ha csak az egyik sem érvényes, hamissal tér vissza.
+     * @param flag A CLASTLE_** flagekből or-al összeállított flag.
+     * @return igaz, ha a jogok érvényesek.
+     */
     public boolean canCastle(int flag) {
-        return (castlingRights & flag) != 0;
+        return (castlingRights & flag) == flag;
     }
 
     public int getCastleRights() {

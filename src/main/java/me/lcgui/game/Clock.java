@@ -10,7 +10,14 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.LinkedList;
 
+/**
+ * Sakkóra, amely támogatja a népszerű formátumokat.
+ */
 public class Clock implements Serializable {
+    /**
+     * Sakkóra formátumának leírására szolgáló osztály.
+     * Statikus változóként definiál néhány népszerű formátumot.
+     */
     public static class Format implements Serializable {
         public static final int MINUTE = 60;
         public static final int HOUR = MINUTE * 60;
@@ -22,6 +29,9 @@ public class Clock implements Serializable {
         public static final Format Blitz = new Format(5 * MINUTE, "Blitz (5 min)");
         public static final Format Bullet = new Format(MINUTE, "Bullet (1 min)");
 
+        /**
+         * A metódus, amivel a sakkóra a lépések utáni többletidőt hozzáadja a megmaradt időhöz.
+         */
         public enum IncType {
             NONE, DELAY, BRONSTEIN, FISCHER
         }
@@ -32,6 +42,16 @@ public class Clock implements Serializable {
         public final IncType type;
         private final String name;
 
+        /**
+         * Formátumo létrehozása.
+         * Az időmennyiségeket századmásodpercben kell megadni.
+         * @param wtime világos ideje.
+         * @param winc világos többletideje lépés után.
+         * @param btime sötét ideje.
+         * @param binc sötét többletideje lépés után.
+         * @param type többletidő hozzáadásának metódusa.
+         * @param name a formátum elnevezése.
+         */
         public Format(int wtime,int winc,int btime,int binc, IncType type, String name) {
             this.time[Side.White.ordinal()] = wtime * 10;
             this.inc[Side.White.ordinal()] = winc * 10;
@@ -41,10 +61,22 @@ public class Clock implements Serializable {
             this.name = name;
         }
 
+        /**
+         * Formátum létrehozása, világos és sötét ideje egyenlő.
+         * @param time a játékosok ideje
+         * @param inc a többletidő lépés után
+         * @param type többletidő hozzáadásának metódusa.
+         * @param name a formátum elnevezése.
+         */
         public Format(int time, int inc, IncType type, String name) {
             this(time, inc, time, inc, type, name);
         }
 
+        /**
+         * Formátum létrehozása többletidő nélkül.
+         * @param time A játékosok ideje.
+         * @param name a formátum elnevezése.
+         */
         public Format(int time, String name) {
             this(time, 0, time, 0, IncType.NONE, name);
         }
@@ -55,9 +87,15 @@ public class Clock implements Serializable {
         }
     }
 
-    public final Event<Side>
-            tickEvent = new Event<>(),
-            outOfTimeEvent = new Event<>();
+    /**
+     * Századmásodperc eltelésének esemélye, ekkor az óra frissíti az idejét.
+     */
+    public final Event<Side> tickEvent = new Event<>();
+
+    /**
+     * Az egyik játékos kifutott az időből.
+     */
+    public final Event<Side> outOfTimeEvent = new Event<>();
 
     private final int[] remaining = new int[2]; // remaining time in 100ms
     private final int[] used = new int[2]; // time used since last move
@@ -65,19 +103,33 @@ public class Clock implements Serializable {
     public final Format format;
     private transient Timer timer = new Timer(100, e -> reduceTime());
 
+    /**
+     * @param format A sakkóra formátuma.
+     * @param side2move A soron következő fél.
+     */
     public Clock(Format format, Side side2move) {
         this.format = format;
         reset(side2move);
     }
 
+    /**
+     * Elindítja a sakkórát.
+     */
     public void start() {
         timer.start();
     }
 
+    /**
+     * Leállítja a sakkórát.
+     */
     public void stop() {
         timer.stop();
     }
 
+    /**
+     * Alapállapotba helyezi a sakkórát.
+     * @param side2move A soron következő fél.
+     */
     public void reset(Side side2move) {
         timer.stop();
         clockState = side2move;
@@ -85,21 +137,41 @@ public class Clock implements Serializable {
         remaining[1] = format.time[1];
     }
 
+    /**
+     * @return igaz, ha a sakkóra épp számlál.
+     */
     public boolean isRunning() {
         return timer.isRunning();
     }
 
+    /**
+     * @return igaz, ha a sakkóra leállt, mert az egyik játékos kifutott az időből.
+     */
     public boolean isTimeout() {
         return remaining[clockState.ordinal()] == 0;
     }
 
+    /**
+     * @param side A fél, akinek az idejét keressük.
+     * @return A megadott fél megmaradt gondolkozási ideje.
+     */
     public int getRemaining(Side side) {
         return remaining[side.ordinal()];
     }
+
+    /**
+     * @param side A fél, akinek az idejét keressük.
+     * @return A megadott fél megmaradt gondolkozási ideje ms-ben.
+     */
     public int getRemainingMs(Side side) {
         return getRemaining(side) * 100;
     }
 
+    /**
+     * A soron lévő játékos lépett, mostantól a másik játékos órája ketyeg.
+     * Hozzáadja a többletidőt a lépő játékos idejéhez.
+     * Ha az óra le volt állítva, újraindítja magát.
+     */
     public void movePlayed() {
         int sIdx = clockState.ordinal();
 
@@ -130,6 +202,10 @@ public class Clock implements Serializable {
         }
     }
 
+    /**
+     * @param side A fél, akinek az idejét kérjük.
+     * @return hh:mm:ss.ms formátumban a megadott fél megmaradt gondolkpzási ideje.
+     */
     public String getTimeStr(Side side) {
         int sIdx = side.ordinal();
         int[] ms_s_m_h = { 0, 0, 0, 0 };

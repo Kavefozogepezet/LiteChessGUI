@@ -1,7 +1,6 @@
 package me.lcgui.app;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import me.lcgui.audio.AudioFX;
 import me.lcgui.engine.Engine;
 import me.lcgui.engine.EngineManager;
 import me.lcgui.engine.ProtocolImplementation;
@@ -20,10 +19,24 @@ import java.io.*;
 import java.util.*;
 
 public class LiteChessGUI {
+    /**
+     * A player package-ben {@link SelectablePlayer} annotációk gyűjteménye.
+     * Az alkalmazás automatikusan összegyűjti futás elején.
+     */
     public static final Set<SelectablePlayer> players = new HashSet<>();
 
+    /**
+     * Az engine package-ben {@link ProtocolImplementation} annotációval ellátott osztályok gyűjteménye.
+     * Az egyes osztályok kulcsa az általuk implementált protocol.
+     * Az alkalmazás automatikusan összegyűjti futás elején.
+     */
     public static final Map<String, Class<? extends Engine>> protocols = new HashMap<>();
 
+    /**
+     * Az alkalmazás összes beállítását tárolja.
+     * Ha egy osztály saját beállításokat szeretne hozzáadni,
+     * ajánlott a beállítás nevét public static String-ként tárolni az egyszerűség kedvéért.
+     */
     public static Settings settings = Settings.withDefaults(
             Settings.setting(EngineManager.ENGINE_LOG, false),
             Settings.setting(HumanPlayer.AUTO_DRAW, false),
@@ -32,13 +45,20 @@ public class LiteChessGUI {
             Settings.setting(BoardView.SHOW_SQUARE_INFO, true),
             Settings.setting(BoardStyle.STYLE, BoardStyle.defaultStyle)
     );
+
+    /**
+     * Az alkalmazásban installált, és az éppen futó engine-eket tárolja.
+     */
     public static EngineManager engineManager = new EngineManager();
+
+    /**
+     * Az éppen betöltött stílust tárolja.
+     */
     public static BoardStyle style = new BoardStyle();
 
     private static LCGUIWindow window;
 
     public static void main(String[] args) {
-        AudioFX.innit();
         initPlayers();
         initProtocols();
 
@@ -66,7 +86,10 @@ public class LiteChessGUI {
         return window;
     }
 
-    private static void loadSettings() {
+    /**
+     * Betölti a beállításokat, stílust, és az installált engine-eket.
+     */
+    public static void loadSettings() {
         File settingsFile = new File("settings.ser");
         if(!settingsFile.exists())
             return;
@@ -90,7 +113,10 @@ public class LiteChessGUI {
         }
     }
 
-    private static void saveSettings() {
+    /**
+     * Elmenti a beállításokat, stílust, és az installált engine-eket.
+     */
+    public static void saveSettings() {
         try(
                 var stream = new ObjectOutputStream(
                         new FileOutputStream(

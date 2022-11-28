@@ -4,12 +4,14 @@ import me.lcgui.app.LiteChessGUI;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.movegen.Move;
-import me.lcgui.gui.MoveSupplier;
 import me.lcgui.gui.SelectablePlayer;
 import me.lcgui.gui.factory.HumanPlayerFactory;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 
+/**
+ * Olyan {@link Player} amely a lépéseit egy GUI-tól érkező move suplier-től kapja.
+ */
 @SelectablePlayer(name = "Human", factoryClass = HumanPlayerFactory.class, canUseGUI = true)
 public class HumanPlayer implements Player {
     public static final String AUTO_DRAW = "auto_draw";
@@ -53,6 +55,9 @@ public class HumanPlayer implements Player {
             supplier.removeMoveListener(onMoveInput);
     }
 
+    /**
+     * @param supplier A move sullpier ami az emberi játékos lépésit közvetíti.
+     */
     public void setMoveSupplier(MoveSupplier supplier) {
         if(this.supplier != null)
             this.supplier.removeMoveListener(onMoveInput);

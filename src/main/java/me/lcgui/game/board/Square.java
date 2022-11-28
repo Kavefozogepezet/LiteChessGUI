@@ -3,6 +3,10 @@ package me.lcgui.game.board;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * A sakktábla egy mezőjét ábrázoló osztály.
+ * Az összes valid mezőt tárolja statikus változóként.
+ */
 public class Square implements Serializable {
     public static final Square
             a1 = new Square(0, 0), b1 = new Square(1, 0), c1 = new Square(2, 0), d1 = new Square(3, 0), e1 = new Square(4, 0), f1 = new Square(5, 0), g1 = new Square(6, 0), h1 = new Square(7, 0),
@@ -23,6 +27,10 @@ public class Square implements Serializable {
         this.rank = rank;
     }
 
+    /**
+     * @param fileCh Az oszlop betűjele (a-h)
+     * @param rank A sor betűjele (1-8)
+     */
     public Square(char fileCh, int rank) {
         this(char2file(fileCh), rank - 1);
     }
@@ -43,16 +51,32 @@ public class Square implements Serializable {
         return Objects.hash(file, rank);
     }
 
+    /**
+     * @return igaz ha a mező érvényes, tehát a koordinátái 0 és 8 közé esnek.
+     */
     public boolean valid() {
         return
                 0 <= file && file < AbstractBoard.BOARD_SIZE &&
                 0 <= rank && rank < AbstractBoard.BOARD_SIZE;
     }
 
+    /**
+     * Visszaadja azt a mezőt, ami a megadott távolságra van ettől a mezőtől.
+     * (pl.: b2.shift(2, 2) -> d4)
+     * @param file Az oszlop távolság.
+     * @param rank A sor távolság.
+     * @return Az eltolt mező.
+     */
     public Square shift(int file, int rank) {
         return new Square(this.file + file, this.rank + rank);
     }
 
+    /**
+     * Megadja a mezőt, ami pont az adott két mező közé esik.
+     * @param sq1 Az egyik mező.
+     * @param sq2 A másik mező.
+     * @return A közéjük eső mező.
+     */
     public static Square between(Square sq1, Square sq2) {
         return new Square(
                 (sq1.file + sq2.file) / 2,
@@ -60,14 +84,27 @@ public class Square implements Serializable {
         );
     }
 
+    /**
+     * Megadja a mezőt, amely az első mező oszlopának, és a második mező sorának a kereszteződésénél van.
+     * @param sqFile A mező, amelyből az oszlop információ derül ki.
+     * @param sqRank A mező, amelyből a sor információ derül ki.
+     * @return Az oszlop és a sor kereszteződésénél lévő mező.
+     */
     public static Square cross(Square sqFile, Square sqRank) {
         return new Square(sqFile.file, sqRank.rank);
     }
 
+    /**
+     * @return igaz, ha a sakktáblán a mező világos színű volna.
+     */
     public boolean isLight() {
         return (file + rank) % 2 == 0;
     }
 
+    /**
+     * A mezőt átalakítja egy 64 elemű tömb indexévé.
+     * @return Az index.
+     */
     public int linearIdx() {
         return (rank << 3) + file;
     }
@@ -106,5 +143,4 @@ public class Square implements Serializable {
     public static int char2rank(char ch) {
         return ch - '1';
     }
-
 }

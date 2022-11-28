@@ -6,6 +6,9 @@ import me.lcgui.game.board.*;
 
 import java.io.Serializable;
 
+/**
+ * FEN jelölést tartalmazó osztály.
+ */
 public class FEN implements GameSetup, Serializable {
     public static final String STARTPOS_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     private static final String[] castling = {
@@ -14,10 +17,18 @@ public class FEN implements GameSetup, Serializable {
 
     private String fen = STARTPOS_FEN;
 
+    /**
+     * FEN jelölésből készült példány, amit parti felállításához lehet majd használni.
+     * @param fen A jelölés.
+     */
     public FEN(String fen) {
         this.fen = fen;
     }
 
+    /**
+     * {@link Game} példányból készült FEN jelölés, ami a parti aktuális állapotát ábrázolja.
+     * @param game A parti, amit a FEN ábrázolni fog.
+     */
     public FEN(Game game) {
         StringBuilder fenBuilder = new StringBuilder();
         Board board = game.getBoard();
@@ -60,6 +71,11 @@ public class FEN implements GameSetup, Serializable {
         fen = fenBuilder.toString();
     }
 
+    /**
+     * Beállítja a megadott parti kezdőpozicióját.
+     * @param game A parti.
+     * @throws IncorrectNotationException A FEN jelölés érvénytelen volt.
+     */
     public void set(Game game) throws IncorrectNotationException {
         String[] sections = fen.split(" ");
 
@@ -91,13 +107,15 @@ public class FEN implements GameSetup, Serializable {
         };
 
         int castleRights = 0;
-        for(char c : sections[2].toCharArray()) {
-            switch (c) {
-                case 'Q' -> castleRights |= State.CASTLE_WQ;
-                case 'K' -> castleRights |= State.CASTLE_WK;
-                case 'q' -> castleRights |= State.CASTLE_BQ;
-                case 'k' -> castleRights |= State.CASTLE_BK;
-                default -> throw new IncorrectNotationException("Castle right is invalid (Q/K/q/k)");
+        if(!"-".equals(sections[2])) {
+            for (char c : sections[2].toCharArray()) {
+                switch (c) {
+                    case 'Q' -> castleRights |= State.CASTLE_WQ;
+                    case 'K' -> castleRights |= State.CASTLE_WK;
+                    case 'q' -> castleRights |= State.CASTLE_BQ;
+                    case 'k' -> castleRights |= State.CASTLE_BK;
+                    default -> throw new IncorrectNotationException("Castle right is invalid (Q/K/q/k)");
+                }
             }
         }
 
@@ -113,7 +131,7 @@ public class FEN implements GameSetup, Serializable {
             throw new IncorrectNotationException(e);
         }
 
-        if(turn == Side.Black) // TODO Test ply conversion
+        if(turn == Side.Black)
             ply++;
 
         game.setState(new State(turn, castleRights, epTarget, ply, ply50));
@@ -124,6 +142,10 @@ public class FEN implements GameSetup, Serializable {
         return fen;
     }
 
+    /**
+     * @param obj FEN vagy String típusú objektum.
+     * @return igaz, ha a jelölés azonos.
+     */
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof FEN other)

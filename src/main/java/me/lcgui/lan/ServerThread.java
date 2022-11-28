@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 
+/**
+ * Hálózati kommunikációra képes osztály szerver szerepében.
+ * A szerver csak egy darab {@link ClientThread}-hez kapcsolódik.
+ */
 public class ServerThread extends NetworkThread {
     public ServerThread(String password) {
         super(password);

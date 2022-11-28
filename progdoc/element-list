@@ -1,0 +1,12 @@
+me.lcgui.app
+me.lcgui.engine
+me.lcgui.engine.args
+me.lcgui.game
+me.lcgui.game.board
+me.lcgui.game.movegen
+me.lcgui.game.player
+me.lcgui.game.setup
+me.lcgui.gui
+me.lcgui.gui.factory
+me.lcgui.lan
+me.lcgui.misc

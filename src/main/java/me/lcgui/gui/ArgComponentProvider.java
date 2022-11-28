@@ -8,6 +8,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.NumberFormat;
 
+/**
+ * Engine argumentumokhoz swing grafikus megjelenítést készítő osztály.
+ */
 public class ArgComponentProvider implements ArgGUIProvider, GUICreator {
     JComponent component;
     AbstractArg<?> arg;

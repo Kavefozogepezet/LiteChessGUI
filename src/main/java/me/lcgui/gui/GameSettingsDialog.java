@@ -17,6 +17,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.text.NumberFormat;
 import java.util.HashMap;
 
+/**
+ * Új játék létrehozásához használható, grafikusan megjeleníthető osztály.
+ */
 public class GameSettingsDialog {
     private static final String DEFAULT_POS = "Default start position";
     private static final String FEN_POS = "FEN position from clipboard";
@@ -32,15 +35,26 @@ public class GameSettingsDialog {
 
     private Game game = null;
 
+    /**
+     * FElület létrehozása új játék készítéséhez.
+     */
     public GameSettingsDialog() {
         createGUI();
     }
 
+    /**
+     * Felület létrehozása belöltött, félbehagyott játék folytatásához.
+     * @param game A félbehagyott játék.
+     */
     public GameSettingsDialog(Game game) {
         this.game = game;
         createGUI();
     }
 
+    /**
+     * Megnyitja a grafikus felületet amin a felhasználó konfigurálhatja a játszmát.
+     * @return Igaz, ha a felhasználó OK gombot nyonott;
+     */
     public boolean show() {
         dialog = optionPane.createDialog("NewGame");
         dialog.setVisible(true);
@@ -51,6 +65,12 @@ public class GameSettingsDialog {
                 && (Integer) optionPane.getValue() == JOptionPane.OK_OPTION;
     }
 
+    /**
+     * Elkészíti a játékot a konfigurációt követően.
+     * Csak akkor hívandó meg, amikor a felhasználó már befejezte a konfigurációt, és az OK opcióra kattintott.
+     * @return A konfigurált játszma.
+     * @throws Exception
+     */
     public Game createGame() throws Exception {
         if(game != null)
             return game;
@@ -77,6 +97,13 @@ public class GameSettingsDialog {
         }
     }
 
+    /**
+     * Elkészíti az adott játékost a konfigurációt követően.
+     * Csak akkor hívandó meg, amikor a felhasználó már befejezte a konfigurációt, és az OK opcióra kattintott.
+     * @param side Az elkészítendő fél.
+     * @return Az elkészített játékos.
+     * @throws Exception
+     */
     public Player createPlayer(Side side) throws Exception {
         return players[side.ordinal()].create();
     }

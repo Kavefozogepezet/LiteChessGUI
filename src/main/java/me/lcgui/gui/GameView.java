@@ -1,11 +1,12 @@
 package me.lcgui.gui;
 
-import me.lcgui.audio.AudioFX;
+import me.lcgui.app.AudioFX;
 import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
 import me.lcgui.game.board.Side;
 import me.lcgui.game.board.Square;
 import me.lcgui.game.movegen.Move;
+import me.lcgui.game.player.MoveSupplier;
 import me.lcgui.misc.Consumable;
 import me.lcgui.misc.Event;
 import me.lcgui.game.player.Player;
@@ -20,6 +21,9 @@ import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
+/**
+ * Játszma grafikus megjelenítésére használatos osztály.
+ */
 public class GameView implements GUICreator, MoveSupplier {
     private static final String SKIP_TO_START_SYMBOL = "\u23EE";
     private static final String BACKWARD_SYMBOL = "\u23F4";
@@ -63,6 +67,11 @@ public class GameView implements GUICreator, MoveSupplier {
         return game;
     }
 
+    /**
+     * Átállítja az aktuálisan játszott partit.
+     * Felállítja a táblát.
+     * @param game Az új parti.
+     */
     public void setGame(Game game) {
         if(this.game != null) {
             this.game.moveEvent.removeListener(onMovePlayed);
@@ -92,10 +101,16 @@ public class GameView implements GUICreator, MoveSupplier {
         GUIRoot.repaint();
     }
 
+    /**
+     * @return igaz, ha a grafikus felület a játszma aktuális állását mutatja.
+     */
     public boolean isFollowingGame() {
         return followGame;
     }
 
+    /**
+     * A grafikus felületet egy lépéssel előre lépteti.
+     */
     public void nextMove() {
         if(!moveItr.hasNext()) // we are up-to-date
             return;
@@ -107,6 +122,9 @@ public class GameView implements GUICreator, MoveSupplier {
             followGame = true;
     }
 
+    /**
+     * A grafikus felületet egy lépéssel hátrébb lépteti.
+     */
     public void prevMove() {
         if(!moveItr.hasPrevious()) // we are at the start position
             return;

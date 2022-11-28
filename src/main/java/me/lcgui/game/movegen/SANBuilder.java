@@ -3,11 +3,21 @@ package me.lcgui.game.movegen;
 import me.lcgui.game.board.PieceType;
 import me.lcgui.game.board.Square;
 
+/**
+ * Standard algebraic notation készítéséhez használandó osztály.
+ */
 public class SANBuilder {
-    StringBuilder SAN = new StringBuilder();
+    private final StringBuilder SAN = new StringBuilder();
 
     private boolean canCheck = true;
 
+    /**
+     * Ellátja a SANBUildert az alap informáiókkal, de a sakk/matt állásokat külső segítség nélkül nem ismeri fel.
+     * @param move A lépés, amihez SAN-t generálunk.
+     * @param movegen A {@link MoveGen} példány amivel a lépést generáltuk.
+     *                Azért van erre szükség, mert a SAN csak úgy tehető egyértelmű jelöléssé,
+     *                ha ehhez ismerjük a többi legális lépést is.
+     */
     public SANBuilder(Move move, MoveGen movegen) {
         if(move.isCastle()) {
             canCheck = false;
@@ -58,16 +68,25 @@ public class SANBuilder {
         }
     }
 
+    /**
+     * A SAN-t úgy generálja majd, hogy az tükrözze hogy a lépés sakk állást eredményezett.
+     */
     public void check() {
         if(canCheck)
             SAN.append('+');
     }
 
+    /**
+     * A SAN-t úgy generálja majd, hogy az tükrözze hogy a lépés matt állást eredményezett.
+     */
     public void mate() {
         if(canCheck)
             SAN.append('#');
     }
 
+    /**
+     * @return Megadja a SAN jelölést.
+     */
     @Override
     public String toString() {
         return SAN.toString();

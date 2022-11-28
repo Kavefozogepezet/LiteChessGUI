@@ -9,6 +9,9 @@ import me.lcgui.misc.Consumable;
 
 import java.util.ArrayList;
 
+/**
+ * UCI protokollt megvalósító {@link Engine}
+ */
 @ProtocolImplementation(name = "UCI")
 public class UCIEngine extends AbstractEngine {
     public UCIEngine(EngineConfig config) {

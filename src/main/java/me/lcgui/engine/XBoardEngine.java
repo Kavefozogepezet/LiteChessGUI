@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * XBoard protocollt megvalósító {@link Engine}
+ */
 @ProtocolImplementation(name = "XBoard")
 public class XBoardEngine extends AbstractEngine {
     private final Features myFeatures = new Features();

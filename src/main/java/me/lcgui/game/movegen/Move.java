@@ -1,6 +1,5 @@
 package me.lcgui.game.movegen;
 
-import me.lcgui.game.Clock;
 import me.lcgui.game.Game;
 import me.lcgui.game.IllegalMoveException;
 import me.lcgui.game.IncorrectNotationException;
@@ -10,6 +9,13 @@ import me.lcgui.game.board.Square;
 import java.io.Serializable;
 import java.util.Objects;
 
+/**
+ * Egy lépést ábrázoló osztály.
+ * A különleges lépéseket flag-ek segítségével tárolja.
+ * Ilyenek a gyalog kettős lépése, en passant, előreléptetés, sáncolás.
+ * A PROMOTE_* flagek a * helyén a tiszt karakterét kódolják.
+ * A CASTLE_* flagek a * helyén a királynő, és a király oldali sáncolást kódolják.
+ */
 public class Move implements Serializable {
     // Flags
     public static final int DOUBLE_PUSH = 0b00000001;
@@ -30,6 +36,12 @@ public class Move implements Serializable {
     public final Piece captured;
     private final int flags;
 
+    /**
+     * Átlagos lépést készít, amely nem vesz le bábut.
+     * @param from A lépés kezdő mezője.
+     * @param to A lépés cél mezője.
+     * @param moving A lépő bábu.
+     */
     public Move(Square from, Square to, Piece moving) {
         this.from = from;
         this.to = to;
@@ -38,6 +50,13 @@ public class Move implements Serializable {
         this.flags = 0;
     }
 
+    /**
+     * Átlagos lépést készít, amely levesz egy bábut.
+     * @param from A lépés kezdő mezője.
+     * @param to A lépés cél mezője.
+     * @param moving A lépő bábu.
+     * @param captured A levett bábu.
+     */
     public Move(Square from, Square to, Piece moving, Piece captured) {
         this.from = from;
         this.to = to;
@@ -46,6 +65,14 @@ public class Move implements Serializable {
         this.flags = 0;
     }
 
+    /**
+     * Különleges lépést készít.
+     * @param from A lépés kezdő mezője.
+     * @param to A lépés cél mezője.
+     * @param moving A lépő bábu.
+     * @param captured A levett bábu. Ha nem vesz le bábut, legyen null.
+     * @param flags A különleges lépést leíró flagek.
+     */
     public Move(Square from, Square to, Piece moving, Piece captured, int flags) {
         this.from = from;
         this.to = to;
@@ -54,18 +81,31 @@ public class Move implements Serializable {
         this.flags = flags;
     }
 
+    /**
+     * @return igaz, ha a lépés levesz egy bábut.
+     */
     public boolean isCapture() {
         return captured != null;
     }
 
+    /**
+     * @return igaz, ha a lépés rendelkezik sáncolás flag-el.
+     */
     public boolean isCastle() {
         return (flags & CASTLING) != 0;
     }
 
+    /**
+     * @return igaz, ha a lépés rendelkezik előreléptetés flag-el.
+     */
     public boolean isPromotion() {
         return (flags & PROMOTION) != 0;
     }
 
+    /**
+     * Megadja a lépő bábu színe alapján, hogy milyen tiszt kerüljön a lépés célmezőjére.
+     * @return A tiszt.
+     */
     public Piece getPromotionPiece() {
         final Piece[][] promPieces = {
             { Piece.WQueen, Piece.WRook, Piece.WKnight, Piece.WBishop },
@@ -78,10 +118,17 @@ public class Move implements Serializable {
         return promPieces[sideIdx][pieceIdx];
     }
 
+    /**
+     * @param flag A viszgálni kívánt flagek.
+     * @return Igaz, ha a megadott flagek mindegyike be van állítva.
+     */
     public boolean is(int flag) {
-        return (flags & flag) != 0;
+        return (flags & flag) == flag;
     }
 
+    /**
+     * @return Lépés string-je long algebraic notation szerint.
+     */
     @Override
     public String toString() {
         String moveStr = from.toString() + to.toString();
@@ -98,27 +145,5 @@ public class Move implements Serializable {
                     && flags == other.flags;
         }
         return false;
-    }
-
-    public static Move parseLA(Game game, String moveStr) throws IncorrectNotationException, IllegalMoveException {
-        if(moveStr.length() < 4 || moveStr.length() > 5)
-            throw new IncorrectNotationException("Move must be in long algebraic notation.");
-
-        Square
-                from = Square.parse(moveStr.substring(0, 2)),
-                to = Square.parse(moveStr.substring(2, 4));
-
-        if(!(from.valid() && to.valid()))
-            throw new IncorrectNotationException("Move refers to invalid squares");
-
-        if(moveStr.length() == 5)
-            if(!"qrbn".contains(moveStr.substring(4, 5)))
-                throw new IncorrectNotationException("Promotion piece is invalid");
-
-        for(Move move : game.getPossibleMoves().from(from))
-            if(move.toString().equals(moveStr))
-                return move;
-
-        throw new IllegalMoveException();
     }
 }

@@ -12,6 +12,9 @@ import java.awt.*;
 import java.util.Collection;
 import java.util.LinkedList;
 
+/**
+ * Felugró ablak, amiben a felhasználó kiválaszthatja, milyen tiszté szeretné előléptetni a gyalogot.
+ */
 public class PromotionDialog {
     private final LinkedList<Move> promotions = new LinkedList<>();
     private final Side side;
@@ -19,6 +22,13 @@ public class PromotionDialog {
     private final Point position;
     private PieceType selected = null;
 
+    /**
+     * @param moves Az összes legális lépés a célmezőre.
+     * @param from A kezdő mező, ahonnan a gyalog ellépett.
+     * @param to A célmező, ahova a tisztet helyezni kell.
+     * @param dimension Egy mező mérete a képernyőn.
+     * @param position A cél mező bal felső sarka a képernyőn.
+     */
     public PromotionDialog(Collection<Move> moves, Square from, Square to, Dimension dimension, Point position) {
         for(var move : moves)
             if(move.isPromotion() && move.from.equals(from) && move.to.equals(to))
@@ -31,6 +41,9 @@ public class PromotionDialog {
                 : new Point(position.x, position.y - dimension.height * 3);
     }
 
+    /**
+     * Megjeleníti a felugró ablakot.
+     */
     public void show() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(4, 1));
@@ -62,6 +75,9 @@ public class PromotionDialog {
         d.setVisible(true);
     }
 
+    /**
+     * @return A felhasználó által választott előléptetés lekérése.
+     */
     public Move getSelectedMove() {
         for(var move : promotions)
             if(move.getPromotionPiece().type == selected)

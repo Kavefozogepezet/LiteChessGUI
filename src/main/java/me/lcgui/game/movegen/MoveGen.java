@@ -7,7 +7,11 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Set;
 
+/**
+ * Legális lépések generálásához használható osztály.
+ */
 public class MoveGen implements Serializable {
     public static final int[][] directions = {
             { 0, 1 }, { 1, 1 }, { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 }
@@ -29,40 +33,72 @@ public class MoveGen implements Serializable {
 
     private boolean check, doublecheck;
 
-    HashMap<Square, LinkedList<Move>> moves = new HashMap<>();
-    HashMap<Square, LinkedList<Move>> movesToSq = new HashMap<>();
+    private final LinkedList<Move> allMoves = new LinkedList<>();
+    private final HashMap<Square, LinkedList<Move>> moves = new HashMap<>();
+    private final HashMap<Square, LinkedList<Move>> movesToSq = new HashMap<>();
 
+    /**
+     * Létrehozza a lépés generálót a megadott partihoz.
+     * @param game A parti, aminek a legális lépéseit generálni szeretnénk.
+     */
     public MoveGen(Game game) {
         this.game = game;
         for(int i = 0; i < pinBoards.length; i++)
             pinBoards[i] = new BitBoard();
     }
 
+    /**
+     * Generálja az összes legális lépést a parti állása szerint.
+     */
     public void generate() {
         this.board = this.game.getBoard();
         this.state = this.game.getState();
         moves.clear();
         movesToSq.clear();
+        allMoves.clear();
         fillInfo();
         fillMoves();
     }
 
+    /**
+     * @return igaz, ha a legutóbbi generálás alkalmával sakk állás volt.
+     */
     public boolean isCheck() {
         return check;
     }
 
+    /**
+     * Megadja azokat a lépéseket, amelyek egy bizonyos mezőről indulnak.
+     * @param origin A lépések kezdő mezője.
+     * @return Az ilyen lépések listája.
+     */
     public LinkedList<Move> from(Square origin) {
         var list = moves.get(origin);
         return list == null ? new LinkedList<>() : list;
     }
 
+    /**
+     * Megadja azokat a lépéseket, amelyek egy bizonyos mezőre érkeznek.
+     * @param sq A lépések cél mezője.
+     * @return Az ilyen lépések listája.
+     */
     public LinkedList<Move> to(Square sq) {
         var list = movesToSq.get(sq);
         return list == null ? new LinkedList<>() : list;
     }
 
+    /**
+     * @return Az összes legális lépés listája.
+     */
+    public LinkedList<Move> all() {
+        return allMoves;
+    }
+
+    /**
+     * @return igaz, ha nem talált legális lépést, mert patt, vagy matt helyzet állt elő.
+     */
     public boolean isEmpty() {
-        return moves.isEmpty();
+        return allMoves.isEmpty();
     }
 
     // ---------- INFO ----------
@@ -292,6 +328,7 @@ public class MoveGen implements Serializable {
 
         movelist.add(move);
         moveToList.add(move);
+        allMoves.add(move);
     }
 
     private void addWithPromotion(Square from, Square to, Piece pawn, Piece captured) {
