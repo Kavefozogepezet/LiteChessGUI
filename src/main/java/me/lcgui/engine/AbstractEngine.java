@@ -22,7 +22,7 @@ public abstract class AbstractEngine implements Engine {
      * A minimum idő ms-ben, amennyit várni kell az engine process elindítása után.
      * Ha leteltéig az engine nem válaszol, közelező leállítani az engine-t.
      */
-    public static int VERIFICATION_WINDOW_SIZE = 3000;
+    public static int VERIFICATION_WINDOW_SIZE = 5000;
 
     /**
      * A konfiguráció, ami alapján az engine elindult.

@@ -102,7 +102,7 @@ public class Args {
 
         @Override
         public void setValue(String value) {
-            if(options.contains(value))
+            if(options == null || options.contains(value))
                 super.setValue(value);
         }
 

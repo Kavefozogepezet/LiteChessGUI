@@ -43,7 +43,7 @@ public class LCGUIWindow extends JFrame {
         icon = tempIcon;
     }
 
-    public static Dimension defaultSize = new Dimension(640, 480);
+    public static Dimension defaultSize = new Dimension(960, 720);
     public static Dimension minimumSize = new Dimension(640, 480);
 
     private static final int MOVES_TAB = 0;
@@ -410,12 +410,14 @@ public class LCGUIWindow extends JFrame {
         }
 
         JDialog dialog = new JDialog(this, "Engine Config");
-
         JTabbedPane tabs = new JTabbedPane(JTabbedPane.LEFT, JTabbedPane.WRAP_TAB_LAYOUT);
+
         for(var name : LiteChessGUI.engineManager.getInstalledEngines()) {
             EngineConfig config =  LiteChessGUI.engineManager.getConfig(name);
             JPanel panel = new JPanel();
-            panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+            var layout = new GridBagLayout();
+            var constraints = new GridBagConstraints();
+            panel.setLayout(layout);
 
             JPanel options = new JPanel(new GridLayout(config.options.size(), 3));
             for(var option : config.options.values()) {
@@ -426,6 +428,7 @@ public class LCGUIWindow extends JFrame {
             }
             options.setBorder(new TitledBorder("Options"));
             options.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+            JScrollPane scroll = new JScrollPane(options);
 
             JPanel buttons = new JPanel();
             buttons.setLayout(new GridLayout(1, 2));
@@ -447,12 +450,22 @@ public class LCGUIWindow extends JFrame {
             });
             buttons.add(uninstal);
 
-            panel.add(options);
+            constraints.fill = GridBagConstraints.BOTH;
+            constraints.weightx = 1.0d;
+            constraints.weighty = 1.0d;
+            layout.setConstraints(scroll, constraints);
+            panel.add(scroll);
+
+            constraints.weighty = 0.0d;
+            constraints.gridy = 1;
+            layout.setConstraints(buttons, constraints);
             panel.add(buttons);
+
             panel.setBorder(new EmptyBorder(16, 16, 16, 16));
 
             tabs.addTab(name, null, panel);
         }
+
         dialog.add(tabs);
         dialog.pack();
         dialog.setVisible(true);
